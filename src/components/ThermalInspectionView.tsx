@@ -27,6 +27,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
   );
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [inspectionResult, setInspectionResult] = useState<ThermalScanResult | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [probeCoords, setProbeCoords] = useState<{ x: number; y: number } | null>(null);
   const [hoveredTemp, setHoveredTemp] = useState<number | null>(null);
 
@@ -59,19 +60,53 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
 
   const handleRunThermalAi = async () => {
     setIsAnalyzing(true);
+    setAnalysisError(null);
+    setInspectionResult(null);
     try {
+      // Convert the currently displayed image (uploaded data URL or bundled asset)
+      // into the base64 payload required by the API.
+      let dataUrl = selectedImageSrc;
+      if (!selectedImageSrc.startsWith('data:')) {
+        const imageResponse = await fetch(selectedImageSrc);
+        if (!imageResponse.ok) {
+          throw new Error('Could not load the example image. Upload an inspection image and try again.');
+        }
+        const imageBlob = await imageResponse.blob();
+        dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Could not read the image.'));
+          reader.onerror = () => reject(new Error('Could not read the image.'));
+          reader.readAsDataURL(imageBlob);
+        });
+      }
+
+      const commaIndex = dataUrl.indexOf(',');
+      if (commaIndex < 0) {
+        throw new Error('The selected image could not be prepared. Please upload it again.');
+      }
+      const mimeType = dataUrl.slice(5, dataUrl.indexOf(';')) || 'image/jpeg';
+      const imageBase64 = dataUrl.slice(commaIndex + 1);
+
       const response = await fetch('/api/analyze-thermal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inspectionNotes: 'Radiometric FLIR E95 infrared thermal scan of heavy motor bearing casing at Bay Delta Kiln Blower KB-02',
+          imageBase64,
+          mimeType,
+          inspectionNotes: 'Prototype image review. Do not assume calibrated radiometric temperature unless a readable scale appears in the image.',
         }),
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || `Image-analysis service returned HTTP ${response.status}`);
+      }
       setInspectionResult(data);
     } catch (err) {
-      console.error(err);
+      console.error('Thermal image analysis failed:', err);
+      setAnalysisError(err instanceof Error
+        ? err.message
+        : 'Thermal image analysis failed. No measurements or diagnosis were generated.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -91,6 +126,15 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      <div role="note" className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+        <strong>Image review only:</strong> a normal image is not a calibrated thermogram. Any AI observations are tentative and must be checked with calibrated equipment by a qualified technician.
+      </div>
+      {analysisError && (
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <span>{analysisError}</span>
+          <button type="button" onClick={() => setAnalysisError(null)} className="rounded-lg px-2 py-1 font-semibold hover:bg-rose-100" aria-label="Dismiss image analysis error">Dismiss</button>
+        </div>
+      )}
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
