@@ -162,7 +162,7 @@ export const FaultSimulator: React.FC<FaultSimulatorProps> = ({
             <Sliders className="w-5 h-5 text-amber-400" />
             <div>
               <h3 className="text-base font-bold text-white tracking-tight">
-                Industrial Fault Injection Simulator
+                Demo Fault Scenario Simulator
               </h3>
               <p className="text-xs text-slate-400">
                 Target Asset: <span className="text-cyan-300 font-semibold">{asset.name}</span> ({asset.tag})
@@ -323,7 +323,7 @@ export const FaultSimulator: React.FC<FaultSimulatorProps> = ({
               className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 rounded transition-colors shadow-lg shadow-amber-950"
             >
               <Zap className="w-4 h-4" />
-              <span>Inject Fault & Trip Anomaly</span>
+              <span>Simulate Fault & Draft Work Order</span>
             </button>
           </div>
         </div>
