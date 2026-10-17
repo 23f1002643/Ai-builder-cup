@@ -1,0 +1,6 @@
+{
+  "name": "Daxoriq - Industrial Predictive Maintenance Platform",
+  "description": "AI-driven industrial maintenance and operations platform with real-time sensor analytics, RUL failure prediction, automated work orders, and diagnostic copilot.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
