@@ -56,8 +56,8 @@ Analyze the following asset telemetry and maintenance context:
 
 Asset: ${asset?.name || 'Industrial Machine'} (${asset?.type || 'General Machinery'})
 Model: ${asset?.model || 'N/A'}, Location: ${asset?.bay || 'Factory Floor'}
-Operating Hours: ${asset?.operatingHours || 0} hrs
-Current Health Score: ${asset?.healthScore || 85}% | Predicted RUL: ${asset?.rulHours || 120} operating hours / cycles
+Operating Hours: ${asset?.operatingHours ?? 'Not provided'} hrs (demo asset metadata; verify before relying on it)
+Demo health indicator: ${asset?.healthScore ?? 'Not provided'}% (not model-validated) | UI-supplied RUL indicator: ${asset?.rulHours ?? 'Not provided'} hours / cycles (not model-validated)
 
 Active Sensor Readings:
 ${JSON.stringify(currentSensors, null, 2)}
@@ -68,23 +68,21 @@ ${JSON.stringify(activeFaults, null, 2)}
 Recent Telemetry Variance:
 ${JSON.stringify(telemetryHistory ? telemetryHistory.slice(-5) : [], null, 2)}
 
-Provide a structured, authoritative predictive maintenance diagnosis in JSON format matching this schema:
+Provide a cautious qualitative triage hypothesis in JSON, based only on the supplied context. This is not a validated prediction or equipment diagnosis.
 {
   "severity": "NORMAL" | "MODERATE" | "HIGH" | "CRITICAL",
   "faultType": "string (e.g., Outer Race Bearing Spall (BPFO), Cavitation, Heat Dissipation Failure, Tool Wear Saturation)",
-  "confidenceScore": number (0 to 100),
+  "confidenceScore": null (confidence is not statistically calibrated in this prototype),
   "rootCauseSummary": "concise 2-sentence explanation of mechanical failure mechanism",
-  "failureProbability72h": number (percentage 0-100),
-  "standardsCompliance": "e.g. ISO 10816-3 Zone C (Unrestricted long-term operation not permitted)",
+  "failureProbability72h": null (no validated predictive model is connected),
+  "standardsCompliance": "Not assessed from supplied evidence; do not claim standards compliance",
   "recommendedAction": "concrete maintenance technician instructions",
   "urgency": "IMMEDIATE_STOP" | "SCHEDULE_24H" | "MONITOR_NEXT_SHIFT" | "NOMINAL",
-  "estimatedRepairHours": number,
-  "requiredParts": [
-    { "partNumber": "string", "description": "string", "inStock": boolean }
-  ]
+  "estimatedRepairHours": null (no verified repair-time history is connected),
+  "requiredParts": [] (no parts catalog is connected; do not invent parts or stock)
 }
 
-Use only the supplied measurements and context. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, credentials, or source citations. If evidence is insufficient to estimate a value, state the limitation clearly in rootCauseSummary and do not present unvalidated predictions as measured facts. This response is an advisory draft for qualified human review; it must not trigger automatic shutdown or work-order dispatch. Return ONLY valid JSON.`;
+Use only the supplied measurements and context. Always return confidenceScore: null, failureProbability72h: null, and estimatedRepairHours: null because this prototype has no validated prediction model or verified repair history. Always return requiredParts as an empty array because no parts catalog is connected. standardsCompliance must say that it is not assessed unless the user supplied a source with measured values and a specific standard. Never invent sensor readings, probabilities, stock levels, credentials, manuals, or source citations. Clearly state evidence gaps in rootCauseSummary. Keep recommendations non-hazardous and reviewable by a qualified technician; never instruct automatic shutdown or dispatch. Return ONLY valid JSON.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.8-flash',
