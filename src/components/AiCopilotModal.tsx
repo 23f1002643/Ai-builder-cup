@@ -35,11 +35,13 @@ export const AiCopilotModal: React.FC<AiCopilotModalProps> = ({
     {
       id: 'init-1',
       role: 'assistant',
-      content: `Hello! I am **Daxoriq AI Copilot**, your certified condition monitoring and industrial reliability assistant.
+      content: `Hi, I'm the Daxoriq maintenance copilot.
 
-I am actively connected to your plant's SCADA sensor streams, OEM service manuals, and CMMS work order registry. 
+I can help explain the sample asset context shown in this prototype and prepare non-executing maintenance drafts for qualified human review.
 
-Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I assist you with diagnostic triage, vibration spectral analysis, or maintenance procedures today?`,
+This demo uses simulated telemetry and embedded sample data. It is not connected to live SCADA, OEM manuals, or a production CMMS. Do not use AI output as a safety-critical instruction.
+
+Selected demo asset: **${currentAsset.name}** (${currentAsset.tag}).`,
       timestamp: 'Just now'
     }
   ]);
@@ -100,6 +102,9 @@ Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I 
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || `AI service returned HTTP ${response.status}`);
+      }
       const botMsg: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
@@ -112,7 +117,9 @@ Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I 
       const errorMsg: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: 'Unable to reach the Daxoriq AI engine. Please verify network connectivity or check server logs.',
+        content: err instanceof Error
+          ? `AI copilot unavailable: ${err.message}. Check server configuration and try again. No diagnosis was generated.`
+          : 'AI copilot unavailable. Check server configuration and try again. No diagnosis was generated.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMsg]);
