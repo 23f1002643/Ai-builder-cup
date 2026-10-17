@@ -169,7 +169,7 @@ export default function App() {
       createdAt: 'Just now',
       triggerReason: `AI-assisted draft requiring human validation: ${diagnosis.rootCauseSummary}`,
       assignedTechnician: 'Unassigned — review required',
-      estimatedDurationMinutes: Math.round(diagnosis.estimatedRepairHours * 60),
+      estimatedDurationMinutes: diagnosis.estimatedRepairHours == null ? 0 : Math.round(diagnosis.estimatedRepairHours * 60),
       safetyPrecautions: [
         'Draft only: a qualified maintenance professional must validate findings and tasks before use.',
         'Follow site-approved lock-out/tag-out, isolation, and manufacturer procedures.'
