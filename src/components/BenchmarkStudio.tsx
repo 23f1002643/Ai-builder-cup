@@ -54,10 +54,10 @@ export const BenchmarkStudio: React.FC = () => {
         <div>
           <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
             <Database className="w-5 h-5 text-cyan-400" />
-            <span>Industrial ML Benchmark Studio & Open Datasets</span>
+            <span>Benchmark Sample Explorer</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Validation on gold-standard public datasets: NASA C-MAPSS, UCI AI4I 2020 CNC, and CWRU Bearing Fault series.
+            Illustrative interactive trajectories derived from embedded sample points. This page does not run a trained model or report measured evaluation metrics.
           </p>
         </div>
 
@@ -100,28 +100,19 @@ export const BenchmarkStudio: React.FC = () => {
           </div>
         </div>
 
-        {/* Accuracy & Metric Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-800 text-xs font-mono">
-          <div className="bg-slate-950/70 border border-slate-800/80 rounded p-3">
-            <span className="text-slate-400 text-[10px] block">RUL Forecast RMSE</span>
-            <span className="text-cyan-400 text-lg font-bold">{dataset.modelAccuracy.rmse} Cycles</span>
-            <span className="text-slate-500 text-[10px] block mt-0.5">Baseline: 22.4</span>
-          </div>
-          <div className="bg-slate-950/70 border border-slate-800/80 rounded p-3">
-            <span className="text-slate-400 text-[10px] block">Mean Absolute Error (MAE)</span>
-            <span className="text-emerald-400 text-lg font-bold">{dataset.modelAccuracy.mae} Cycles</span>
-            <span className="text-slate-500 text-[10px] block mt-0.5">Continuous trajectory</span>
-          </div>
-          <div className="bg-slate-950/70 border border-slate-800/80 rounded p-3">
-            <span className="text-slate-400 text-[10px] block">Classification F1-Score</span>
-            <span className="text-indigo-400 text-lg font-bold">{dataset.modelAccuracy.f1Score * 100}%</span>
-            <span className="text-slate-500 text-[10px] block mt-0.5">Multi-class failure modes</span>
-          </div>
-          <div className="bg-slate-950/70 border border-slate-800/80 rounded p-3">
-            <span className="text-slate-400 text-[10px] block">Prognostic Lead Time</span>
-            <span className="text-amber-400 text-lg font-bold">+{dataset.modelAccuracy.leadTimeHours} hrs</span>
-            <span className="text-slate-500 text-[10px] block mt-0.5">Zero unplanned stops</span>
-          </div>
+        {/* Evaluation status — no trained model metrics are available in this repository. */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200 text-xs">
+          {[
+            ['Source points', 'Embedded illustration'],
+            ['RUL model', 'Not included'],
+            ['RMSE / MAE', 'Not evaluated'],
+            ['Failure lead time', 'Not evaluated'],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <span className="text-slate-500 text-[10px] block">{label}</span>
+              <span className="text-slate-800 text-sm font-semibold block mt-1">{value}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -135,10 +126,10 @@ export const BenchmarkStudio: React.FC = () => {
             <div>
               <h4 className="text-sm font-semibold text-white flex items-center gap-2">
                 <TrendingDown className="w-4 h-4 text-rose-400" />
-                <span>Run-to-Failure Degradation Trajectory (Cycles 10 → 206)</span>
+                <span>Illustrative degradation sequence</span>
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Comparison of Actual Ground Truth RUL vs. Daxoriq Deep Sequence Autoencoder prediction.
+                Synthetic points to demonstrate the chart interaction only; not an actual-vs-predicted model evaluation.
               </p>
             </div>
 
@@ -149,7 +140,7 @@ export const BenchmarkStudio: React.FC = () => {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded transition-colors"
               >
                 {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                <span>{isPlaying ? 'Pause Run' : 'Simulate Lifecycle'}</span>
+                <span>{isPlaying ? 'Pause Run' : 'Play illustration'}</span>
               </button>
 
               <button
@@ -168,8 +159,8 @@ export const BenchmarkStudio: React.FC = () => {
           <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
             <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
               <span className="flex items-center gap-2">
-                <span className="w-3 h-0.5 bg-rose-500 inline-block" /> Ground Truth RUL
-                <span className="w-3 h-0.5 bg-cyan-400 inline-block ml-2" /> Model Forecast RUL
+                <span className="w-3 h-0.5 bg-rose-500 inline-block" /> Illustrative RUL series
+                <span className="w-3 h-0.5 bg-cyan-400 inline-block ml-2" /> Comparison series (synthetic)
               </span>
               <span className="text-white">
                 Active Cycle: <strong className="text-cyan-400 font-bold">{activeDataPoint.cycle}</strong>
@@ -245,11 +236,11 @@ export const BenchmarkStudio: React.FC = () => {
           {/* Current Cycle State Matrix */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
             <div className="bg-slate-950 border border-slate-800 rounded p-2.5">
-              <span className="text-slate-400 text-[10px] block">RUL Ground Truth</span>
+              <span className="text-slate-400 text-[10px] block">Illustrative RUL</span>
               <span className="text-rose-400 font-bold text-base">{activeDataPoint.rulActual} Cycles</span>
             </div>
             <div className="bg-slate-950 border border-slate-800 rounded p-2.5">
-              <span className="text-slate-400 text-[10px] block">Daxoriq Predicted RUL</span>
+              <span className="text-slate-400 text-[10px] block">Comparison value</span>
               <span className="text-cyan-400 font-bold text-base">{activeDataPoint.rulPredicted} Cycles</span>
             </div>
             <div className="bg-slate-950 border border-slate-800 rounded p-2.5">
@@ -269,63 +260,15 @@ export const BenchmarkStudio: React.FC = () => {
         {/* Right 4 Cols: Feature Importance & Industrial Architecture */}
         <div className="lg:col-span-4 space-y-4">
           
-          {/* Feature Importance */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-            <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-cyan-400" />
-              <span>Model Feature Importance (SHAP)</span>
+          {/* Explainability status */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-cyan-700" />
+              <span>Model explainability</span>
             </h4>
-            <div className="space-y-3 text-xs">
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-slate-300">T30 (HPC Outlet Temp)</span>
-                  <span className="font-mono text-cyan-400">34.2%</span>
-                </div>
-                <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-cyan-500 h-full" style={{ width: '34.2%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-slate-300">W32 (LPT Bleed Coolant)</span>
-                  <span className="font-mono text-cyan-400">24.8%</span>
-                </div>
-                <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-cyan-500 h-full" style={{ width: '24.8%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-slate-300">Nf (Core Spool Speed)</span>
-                  <span className="font-mono text-cyan-400">18.5%</span>
-                </div>
-                <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-cyan-500 h-full" style={{ width: '18.5%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-slate-300">BPR (Bypass Flow Ratio)</span>
-                  <span className="font-mono text-cyan-400">12.1%</span>
-                </div>
-                <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-cyan-500 h-full" style={{ width: '12.1%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-slate-300">T50 (LPT Outlet Temp)</span>
-                  <span className="font-mono text-cyan-400">10.4%</span>
-                </div>
-                <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-cyan-500 h-full" style={{ width: '10.4%' }} />
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              No trained predictive model or SHAP explanations are bundled with this prototype. The channels below are dataset fields, not ranked causal factors. Train and evaluate a model on the full source data before presenting predictions or feature importance.
+            </p>
           </div>
 
           {/* Dataset Variables List */}
