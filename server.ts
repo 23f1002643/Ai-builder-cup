@@ -84,7 +84,7 @@ Provide a structured, authoritative predictive maintenance diagnosis in JSON for
   ]
 }
 
-Use only the measurements and context supplied by the user. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, or credentials. If the evidence does not support a reliable prediction, clearly state this in rootCauseSummary and set unsupported numeric predictions to 0. Recommendations are drafts for qualified human review, never automatic shutdown or dispatch instructions. Use only the measurements and context supplied by the user. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, or credentials. If the evidence does not support a reliable prediction, state the limitation clearly and do not present an unvalidated estimate as measured fact. Recommendations are drafts for qualified human review, never automatic shutdown or dispatch instructions. Return ONLY valid JSON.`;
+Use only the supplied measurements and context. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, credentials, or source citations. If evidence is insufficient to estimate a value, state the limitation clearly in rootCauseSummary and do not present unvalidated predictions as measured facts. This response is an advisory draft for qualified human review; it must not trigger automatic shutdown or work-order dispatch. Return ONLY valid JSON.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.8-flash',
