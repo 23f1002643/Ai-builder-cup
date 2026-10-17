@@ -14,24 +14,44 @@ const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: '20mb' }));
 
-// Server-side Gemini AI Client with telemetry header
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    },
-  },
+// Health and configuration endpoint for the UI and deployment smoke tests.
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    aiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    dataMode: 'demo',
+    telemetry: 'simulated-in-browser',
+    note: 'This prototype is not connected to live factory sensors or a production CMMS.',
+  });
 });
+
+// Server-side Gemini AI Client with telemetry header
+const ai = process.env.GEMINI_API_KEY
+  ? new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    })
+  : null;
 
 // API Routes
 
 // 1. AI Root-Cause Diagnostic Endpoint
 app.post('/api/diagnose', async (req, res) => {
   try {
+    if (!ai) {
+      return res.status(503).json({
+        error: 'AI features are unavailable until GEMINI_API_KEY is configured.',
+        code: 'AI_NOT_CONFIGURED',
+      });
+    }
+
     const { asset, currentSensors, activeFaults, telemetryHistory } = req.body;
 
-    const prompt = `You are Daxoriq AI, an expert industrial reliability engineer and certified vibration analyst (ISO 18436 Category IV).
+    const prompt = `You are an AI assistant in an industrial-maintenance prototype. You are not a certified reliability engineer, and your output is not a validated or safety-critical diagnosis.
 Analyze the following asset telemetry and maintenance context:
 
 Asset: ${asset?.name || 'Industrial Machine'} (${asset?.type || 'General Machinery'})
@@ -64,7 +84,7 @@ Provide a structured, authoritative predictive maintenance diagnosis in JSON for
   ]
 }
 
-Return ONLY valid JSON.`;
+Use only the measurements and context supplied by the user. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, or credentials. If the evidence does not support a reliable prediction, clearly state this in rootCauseSummary and set unsupported numeric predictions to 0. Recommendations are drafts for qualified human review, never automatic shutdown or dispatch instructions. Return ONLY valid JSON.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.8-flash',
@@ -77,22 +97,11 @@ Return ONLY valid JSON.`;
 
     const text = response.text || '{}';
     res.json(JSON.parse(text));
-  } catch (error: any) {
-    console.error('Diagnosis error:', error?.message || error);
-    res.json({
-      severity: 'CRITICAL',
-      faultType: 'Outer Race Bearing Spall (BPFO) & Harmonic Oscillation',
-      confidenceScore: 92,
-      rootCauseSummary: 'Vibration spectral analysis detects high-frequency bearing contact degradation and dynamic micro-welding due to lubrication film breakdown.',
-      failureProbability72h: 84,
-      standardsCompliance: 'ISO 10816-3 Zone C Alarm (Unrestricted long-term operation not permitted)',
-      recommendedAction: 'Execute emergency controlled shutdown; inspect lubrication level, examine raceway with strobe tachometer, and schedule bearing replacement.',
-      urgency: 'SCHEDULE_24H',
-      estimatedRepairHours: 3.5,
-      requiredParts: [
-        { partNumber: 'SKF-6205-2RSH', description: 'Deep Groove Radial Ball Bearing', inStock: true },
-        { partNumber: 'ISO-VG-46', description: 'Synthetic Industrial Lubricant 1L', inStock: true }
-      ]
+  } catch (error: unknown) {
+    console.error('Diagnosis error:', error instanceof Error ? error.message : error);
+    return res.status(503).json({
+      error: 'The AI diagnosis could not be generated. No diagnosis or failure probability is available.',
+      code: 'AI_SERVICE_UNAVAILABLE',
     });
   }
 });
@@ -100,20 +109,41 @@ Return ONLY valid JSON.`;
 // 2. AI Maintenance Copilot Chat & Manual Q&A
 app.post('/api/chat', async (req, res) => {
   try {
+    if (!ai) {
+      return res.status(503).json({
+        error: 'AI features are unavailable until GEMINI_API_KEY is configured.',
+        code: 'AI_NOT_CONFIGURED',
+      });
+    }
+
     const { messages, contextAsset } = req.body;
+    if (
+      !Array.isArray(messages) ||
+      messages.length === 0 ||
+      messages.some((message: any) =>
+        !message ||
+        !['user', 'assistant'].includes(message.role) ||
+        typeof message.content !== 'string'
+      )
+    ) {
+      return res.status(400).json({
+        error: 'Send a non-empty messages array with user/assistant roles and string content.',
+        code: 'INVALID_CHAT_MESSAGES',
+      });
+    }
 
     const systemInstruction = `You are the Daxoriq Industrial Maintenance Copilot, integrated into the plant's CMMS and SCADA systems.
 You assist industrial reliability engineers, plant managers, and field technicians with:
 - Troubleshooting machine faults (vibration spectral peaks, thermal runaway, motor current signature analysis MCSA)
 - NASA C-MAPSS and UCI AI4I industrial benchmark datasets and RUL prediction techniques
-- Step-by-step disassembly and overhaul instructions referencing standard OEM technical manuals
+- General maintenance concepts and reviewable draft work orders; do not present unverified procedures as OEM instructions
 - ISO 10816 (Mechanical vibration evaluation), ISO 13374 (Condition monitoring and diagnostics of machine systems), and OSHA lock-out tag-out (LOTO) protocols.
 - Drafting work order tickets and requisitioning replacement components.
 
-Current Machine Context:
+Safety and evidence rules: only use supplied context; never invent measurements, part availability, standards limits, sensor connections, or document citations. Say when evidence is insufficient. Do not instruct a user to perform hazardous maintenance; require site-approved lock-out/tag-out, OEM procedures, and a qualified technician. A work order is a draft for human approval, not an executed action.\n\nCurrent Machine Context:
 ${contextAsset ? JSON.stringify(contextAsset, null, 2) : 'No specific machine selected.'}
 
-Keep responses concise, technical, precise, safety-first (always mention LOTO when servicing high-voltage or pressurized lines), and formatted with markdown bullet points.`;
+Keep responses concise, cautious, and formatted with markdown. For safety-critical or site-specific decisions, explain the uncertainty and direct the user to site-approved procedures and a qualified maintainer.`;
 
     const contents = messages.map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -130,38 +160,28 @@ Keep responses concise, technical, precise, safety-first (always mention LOTO wh
     });
 
     res.json({ reply: response.text });
-  } catch (error: any) {
-    console.error('Chat error:', error?.message || error);
-    const userQuestion = req.body?.messages?.slice(-1)[0]?.content || '';
-    let reply = `**Daxoriq Technical Reliability Cache:**\n\n`;
-    if (userQuestion.toLowerCase().includes('vibration') || userQuestion.toLowerCase().includes('iso')) {
-      reply += `According to **ISO 10816-3 (Mechanical vibration evaluation for industrial machines 15kW to 300kW)**:
-- **Zone A (< 1.8 mm/s RMS):** Newly commissioned machinery in optimal vibration state.
-- **Zone B (1.8 - 4.5 mm/s RMS):** Unrestricted continuous operation permitted.
-- **Zone C (4.5 - 7.1 mm/s RMS):** Restricted operation. Remedial action should be planned for the next scheduled downtime.
-- **Zone D (> 7.1 mm/s RMS):** Immediate operational danger. Trip alarm and shutdown required to prevent catastrophic shaft or bearing destruction.`;
-    } else if (userQuestion.toLowerCase().includes('bearing') || userQuestion.toLowerCase().includes('replace')) {
-      reply += `**Bearing Replacement & Induction Heating Protocol:**
-1. **LOTO:** Lock-out and tag-out motor drive 480V/4160V feeder and verify zero rotation.
-2. **Disassembly:** Decouple flexible disc spacer; measure shaft axial and radial runout with dial gauge (<0.005mm).
-3. **Induction Heating:** Heat new SKF/NSK spherical roller bearing uniformly to **110°C (230°F)** using an induction heater with demagnetization cycle. Never exceed 125°C to avoid metallurgy annealing.
-4. **Mounting:** Push bearing firmly against shaft abutment shoulder until cooled. Apply correct fill volume (30-40% of bearing free space) with Mobilith SHC 220 high-temp grease.`;
-    } else {
-      reply += `Based on current SCADA telemetry and OEM maintenance manuals:
-- **Lock-Out / Tag-Out (LOTO):** Verify electrical, pneumatic, and hydraulic pressure isolation before opening machine enclosures.
-- **Diagnostic Triage:** Check 1X running frequency harmonics for mass unbalance, 2X for angular shaft misalignment, and high-frequency demodulated kurtosis (>3.5) for raceway micro-pitting.
-- **CMMS Dispatch:** You can auto-generate a priority P1/P2 work order directly from the **Live Telemetry & FFT** tab.`;
-    }
-    res.json({ reply });
+  } catch (error: unknown) {
+    console.error('Chat error:', error instanceof Error ? error.message : error);
+    return res.status(503).json({
+      error: 'The AI copilot could not respond. Check the server configuration and try again; no fallback diagnosis was generated.',
+      code: 'AI_SERVICE_UNAVAILABLE',
+    });
   }
 });
 
 // 3. Automated Work Order Generator
 app.post('/api/generate-work-order', async (req, res) => {
   try {
+    if (!ai) {
+      return res.status(503).json({
+        error: 'AI features are unavailable until GEMINI_API_KEY is configured.',
+        code: 'AI_NOT_CONFIGURED',
+      });
+    }
+
     const { asset, triggerReason, sensorSnapshot } = req.body;
 
-    const prompt = `Generate an industrial CMMS Work Order for:
+    const prompt = `Generate a non-executing DRAFT industrial maintenance work order for human review. This system does not dispatch tickets. Do not invent part numbers, inventory status, or site-specific safety limits. If the input is insufficient, make the gap explicit in the draft.\n\nContext:
 Asset: ${asset.name} (Tag: ${asset.tag}, Category: ${asset.category})
 Trigger: ${triggerReason}
 Sensor State: ${JSON.stringify(sensorSnapshot)}
@@ -191,24 +211,11 @@ Output valid JSON:
     });
 
     res.json(JSON.parse(response.text || '{}'));
-  } catch (error: any) {
-    res.status(500).json({
-      title: 'Emergency Bearing & Lubrication Servicing',
-      priority: 'P1-CRITICAL',
-      assignedTeam: 'Mechanical Reliability Team Alpha',
-      estimatedDurationMinutes: 180,
-      requiredTooling: ['Vibration Stethoscope', 'Torque Wrench 40-200Nm', 'Bearing Induction Heater'],
-      safetyPrecautions: ['Execute NFPA 70E Lock-out/Tag-out', 'Allow machine to cool below 45°C'],
-      tasks: [
-        { step: 1, instruction: 'De-energize main 480V breaker and apply padlock tag', verified: false },
-        { step: 2, instruction: 'Decouple motor shaft coupling and measure runout', verified: false },
-        { step: 3, instruction: 'Extract damaged bearing and inspect shaft journal for fretting corrosion', verified: false },
-        { step: 4, instruction: 'Induction heat new bearing to 110°C and seat against shoulder', verified: false }
-      ],
-      consumableParts: [
-        { sku: 'BRG-SKF-6205', name: 'Radial Deep Groove Bearing', quantity: 1, unit: 'pcs' },
-        { sku: 'LUB-SYN-SHC46', name: 'Mobil SHC Synthetic Grease', quantity: 1, unit: 'pcs' }
-      ]
+  } catch (error: unknown) {
+    console.error('Work-order draft error:', error instanceof Error ? error.message : error);
+    return res.status(503).json({
+      error: 'The AI work-order draft could not be generated. No parts list or task sequence was fabricated.',
+      code: 'AI_SERVICE_UNAVAILABLE',
     });
   }
 });
@@ -216,7 +223,20 @@ Output valid JSON:
 // 4. Multimodal Thermal & Visual Inspection Analysis
 app.post('/api/analyze-thermal', async (req, res) => {
   try {
+    if (!ai) {
+      return res.status(503).json({
+        error: 'AI features are unavailable until GEMINI_API_KEY is configured.',
+        code: 'AI_NOT_CONFIGURED',
+      });
+    }
+
     const { imageBase64, mimeType = 'image/jpeg', inspectionNotes } = req.body;
+    if (typeof imageBase64 !== 'string' || imageBase64.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Upload a thermal/inspection image before requesting analysis.',
+        code: 'IMAGE_REQUIRED',
+      });
+    }
 
     let parts: any[] = [];
     if (imageBase64) {
@@ -229,7 +249,7 @@ app.post('/api/analyze-thermal', async (req, res) => {
     }
 
     parts.push({
-      text: `Analyze this thermographic inspection scan of an industrial mechanical asset.
+      text: `Review the supplied image for visible thermal patterns only. Do not claim calibrated/radiometric measurements unless the image visibly contains a readable scale. Do not invent temperature values from ordinary RGB images. Any observations are tentative and must be reviewed by a qualified thermography technician. This is not a safety-critical diagnosis.
 Inspection context: ${inspectionNotes || 'Routine FLIR radiometric thermography scan'}.
 Identify:
 1. Max temperature hot spot and ambient baseline temperature.
@@ -260,20 +280,11 @@ Return JSON format:
     });
 
     res.json(JSON.parse(response.text || '{}'));
-  } catch (error: any) {
-    console.error('Thermal analysis error:', error);
-    res.json({
-      maxObservedTempC: 138.4,
-      deltaT: 91.2,
-      severityRating: 'CRITICAL',
-      primaryAnomaly: 'Inner/Outer Ring Friction Breakdown & Severe Lubrication Starvation',
-      identifiedHotspots: [
-        { zone: 'Bearing Center Race', tempC: 138.4, status: 'Critical Heat Dissipation Failure' },
-        { zone: 'Flange Housing', tempC: 47.2, status: 'Conducted Dissipation' },
-        { zone: 'Drive Shaft', tempC: 52.5, status: 'Normal Operating Range' }
-      ],
-      failureRisk: 'Imminent thermal seizure within 12 operating hours if continuous load maintained',
-      correctiveAction: 'Immediate controlled shutdown; flush and inspect race for micro-welding pitting; replace bearing set and verify seal integrity.'
+  } catch (error: unknown) {
+    console.error('Thermal analysis error:', error instanceof Error ? error.message : error);
+    return res.status(503).json({
+      error: 'Image analysis failed. No calibrated temperatures or diagnosis are available.',
+      code: 'AI_SERVICE_UNAVAILABLE',
     });
   }
 });
