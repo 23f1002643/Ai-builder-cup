@@ -252,12 +252,12 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
                 {/* Temperature Overview */}
                 <div className="grid grid-cols-2 gap-3 font-mono">
                   <div className="bg-slate-950 border border-slate-800 rounded p-3">
-                    <span className="text-slate-400 text-[10px] block">Max Observed Temp</span>
-                    <span className="text-rose-400 font-bold text-xl">{inspectionResult.maxObservedTempC}°C</span>
+                    <span className="text-slate-400 text-[10px] block">AI-reported max temperature (if readable)</span>
+                    <span className="text-rose-400 font-bold text-xl">{inspectionResult.maxObservedTempC == null ? 'Not measurable' : `${inspectionResult.maxObservedTempC}°C (unverified)`}</span>
                   </div>
                   <div className="bg-slate-950 border border-slate-800 rounded p-3">
-                    <span className="text-slate-400 text-[10px] block">Delta-T above Ambient</span>
-                    <span className="text-amber-400 font-bold text-xl">+{inspectionResult.deltaT}°C</span>
+                    <span className="text-slate-400 text-[10px] block">AI-reported delta-T (if readable)</span>
+                    <span className="text-amber-400 font-bold text-xl">{inspectionResult.deltaT == null ? 'Not measurable' : `+${inspectionResult.deltaT}°C (unverified)`}</span>
                   </div>
                 </div>
 
@@ -276,7 +276,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
                     {inspectionResult.identifiedHotspots.map((hs, i) => (
                       <div key={i} className="flex items-center justify-between bg-slate-950 px-2.5 py-1.5 rounded border border-slate-800 font-mono text-[11px]">
                         <span className="text-slate-300">{hs.zone}</span>
-                        <span className="text-cyan-300 font-bold">{hs.tempC}°C</span>
+                        <span className="text-cyan-300 font-bold">{hs.tempC == null ? 'Not measurable' : `${hs.tempC}°C (unverified)`}</span>
                         <span className="text-slate-400 text-[10px]">{hs.status}</span>
                       </div>
                     ))}
