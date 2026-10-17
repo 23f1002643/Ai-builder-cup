@@ -100,11 +100,12 @@ export interface BenchmarkDataset {
 }
 
 export interface ThermalScanResult {
-  maxObservedTempC: number;
-  deltaT: number;
+  // Numeric fields are nullable because non-radiometric images cannot establish temperature.
+  maxObservedTempC: number | null;
+  deltaT: number | null;
   severityRating: 'CRITICAL' | 'SERIOUS' | 'ADVISORY' | 'NORMAL';
   primaryAnomaly: string;
-  identifiedHotspots: { zone: string; tempC: number; status: string }[];
+  identifiedHotspots: { zone: string; tempC: number | null; status: string }[];
   failureRisk: string;
   correctiveAction: string;
 }
