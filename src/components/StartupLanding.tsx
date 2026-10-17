@@ -204,21 +204,21 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
                 <span>AI-assisted work-order draft</span>
               </div>
               <h4 className="text-sm font-bold text-white leading-tight">
-                Urgent Tool Wear & Spindle Thermal Overhaul
+                Review reported tool-wear alert
               </h4>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Carbide insert flank wear VB &gt; 0.4mm crossed threshold. Siemens Sinumerik feed thrust automated back-off engaged.
+                Example scenario only: review the reported wear values and supporting evidence before planning maintenance.
               </p>
             </div>
 
             <div className="space-y-2 pt-2 border-t border-slate-800/80 text-xs">
               <div className="flex items-center justify-between text-slate-400">
-                <span>Assigned Specialist:</span>
-                <span className="text-white font-medium">Marcus Vance (Bay Beta)</span>
+                <span>Assignment:</span>
+                <span className="text-white font-medium">Not connected</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
-                <span>Standard Compliance:</span>
-                <span className="text-emerald-400 font-mono">ISO 10816-3 Zone C</span>
+                <span>Validation:</span>
+                <span className="text-emerald-400 font-mono">Human review</span>
               </div>
             </div>
 
@@ -238,7 +238,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 font-bold uppercase">
             <Calculator className="w-4 h-4" />
-            <span>Industrial Economics & Downtime Cost Calculator</span>
+            <span>Illustrative downtime-cost calculator</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
             Explore a planning estimate for your facility.
@@ -348,7 +348,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               onClick={onEnterConsole}
               className="w-full py-3 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors shadow-md"
             >
-              Deploy Pilot on Your Assets
+              Open demo operations console
             </button>
           </div>
 
@@ -456,11 +456,11 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
       </section>
 
       {/* 7. Bottom CTA Banner */}
-      <section className="bg-gradient-to-r from-slate-900 via-slate-850 to-cyan-950/40 border border-slate-800 rounded-xl p-8 lg:p-12 text-center space-y-4">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+      <section className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8 lg:p-12 text-center space-y-4">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Explore industrial maintenance workflows with clearer evidence.
         </h2>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto">
+        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
           Explore embedded benchmark samples or open the interactive operations console. The sensor stream is simulated and no live factory is connected.
         </p>
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -468,11 +468,11 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             onClick={onEnterConsole}
             className="px-6 py-3 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors shadow-lg"
           >
-            Launch Live Operations Console
+            Open Operations Console
           </button>
           <button
             onClick={onExploreDatasets}
-            className="px-6 py-3 text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-700 rounded-lg transition-colors"
+            className="px-6 py-3 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-lg transition-colors"
           >
             View benchmark samples (CSV export)
           </button>
