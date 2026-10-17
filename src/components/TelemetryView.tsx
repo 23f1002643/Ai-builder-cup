@@ -531,7 +531,7 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
               <span>Root Cause Diagnosis</span>
               {diagnosticReport && (
                 <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
-                  {diagnosticReport.confidenceScore}% Confidence
+                  {diagnosticReport.confidenceScore == null ? 'AI triage · confidence not calibrated' : `AI-assessed: ${diagnosticReport.confidenceScore}% (not calibrated)`}
                 </span>
               )}
             </h3>
@@ -561,12 +561,12 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
                 {/* ISO Standards & Urgency */}
                 <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
                   <div className="bg-slate-950 border border-slate-800 rounded p-2">
-                    <span className="text-slate-400 block text-[10px]">Failure Risk (72h)</span>
-                    <span className="text-rose-400 font-bold">{diagnosticReport.failureProbability72h}%</span>
+                    <span className="text-slate-400 block text-[10px]">Failure probability (72h)</span>
+                    <span className="text-rose-400 font-bold">{diagnosticReport.failureProbability72h == null ? 'Not estimated' : `${diagnosticReport.failureProbability72h}% · not model-validated`}</span>
                   </div>
                   <div className="bg-slate-950 border border-slate-800 rounded p-2">
-                    <span className="text-slate-400 block text-[10px]">Est. Repair Lead</span>
-                    <span className="text-white font-bold">{diagnosticReport.estimatedRepairHours} hrs</span>
+                    <span className="text-slate-400 block text-[10px]">Estimated repair duration</span>
+                    <span className="text-white font-bold">{diagnosticReport.estimatedRepairHours == null ? 'Not estimated' : `${diagnosticReport.estimatedRepairHours} hrs · unverified`}</span>
                   </div>
                 </div>
 
@@ -580,7 +580,7 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
                 <div className="p-2.5 rounded bg-slate-950/70 border border-slate-800/80 text-[11px] space-y-1">
                   <div className="text-amber-400 font-semibold flex items-center gap-1.5">
                     <Wrench className="w-3.5 h-3.5" />
-                    <span>Corrective Action Protocol:</span>
+                    <span>Suggested next step (human review):</span>
                   </div>
                   <p className="text-slate-300">
                     {diagnosticReport.recommendedAction}
@@ -590,14 +590,14 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
                 {/* Required Spare Parts */}
                 {diagnosticReport.requiredParts && diagnosticReport.requiredParts.length > 0 && (
                   <div className="space-y-1.5">
-                    <span className="text-slate-400 text-[11px] font-medium">Requisitioned Replacement Parts:</span>
+                    <span className="text-slate-400 text-[11px] font-medium">Possible parts (unverified):</span>
                     <div className="space-y-1">
                       {diagnosticReport.requiredParts.map((part, i) => (
                         <div key={i} className="flex items-center justify-between text-[11px] bg-slate-950 px-2 py-1.5 rounded border border-slate-800">
                           <span className="font-mono text-cyan-300">{part.partNumber}</span>
                           <span className="text-slate-300 truncate max-w-[140px]">{part.description}</span>
                           <span className={part.inStock ? 'text-emerald-400' : 'text-rose-400'}>
-                            {part.inStock ? 'In Stock' : 'Reorder'}
+                            {part.inStock == null ? 'Not checked' : part.inStock ? 'In stock' : 'Not in stock'}
                           </span>
                         </div>
                       ))}
@@ -611,7 +611,7 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
                   className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-cyan-200 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 rounded transition-colors"
                 >
                   <Wrench className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Auto-Generate CMMS Work Order</span>
+                  <span>Create maintenance draft</span>
                 </button>
 
               </div>
@@ -619,7 +619,7 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
               <div className="text-center py-8 text-slate-500 space-y-2">
                 <Info className="w-6 h-6 mx-auto text-slate-600" />
                 <p className="text-xs">
-                  Click <strong className="text-slate-400">Run Gemini AI Diagnostics</strong> above to analyze active spectral harmonics and telemetry variance against OEM engineering manuals.
+                  Run an AI-assisted qualitative triage on the selected demo asset. There is no trained predictive model or connected OEM manual source.
                 </p>
               </div>
             )}
@@ -629,7 +629,7 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
             <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
               <Info className="w-4 h-4 text-cyan-400" />
-              <span>OEM Service Manual Cross-Reference</span>
+              <span>Sample maintenance notes · demo</span>
             </h3>
             <div className="space-y-2.5 text-xs">
               {selectedAsset.manuals.map((manual, idx) => (
