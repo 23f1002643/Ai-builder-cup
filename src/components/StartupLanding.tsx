@@ -40,7 +40,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
   const [annualDowntimeHours, setAnnualDowntimeHours] = useState<number>(160);
 
   // ROI Math
-  const totalCurrentDowntimeCost = annualDowntimeHours * downtimeCostPerHour;
+  const totalCurrentDowntimeCost = annualDowntimeHours * downtimeCostPerHour * numAssets;
   const assumedReductionPct = 10; // Planning assumption only; not a measured Daxoriq result.
   const estimatedSavings = Math.round(totalCurrentDowntimeCost * (assumedReductionPct / 100));
 
@@ -75,7 +75,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               onClick={onEnterConsole}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-all shadow-lg shadow-cyan-950 hover:shadow-cyan-900/40"
             >
-              <span>Launch Live Operations Console</span>
+              <span>Open Operations Console</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -112,17 +112,17 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider block">
-              Live Console Teaser
+              Interactive console preview
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
-              High-Frequency Telemetry Ingestion & Spectral Diagnostics
+              Sample telemetry & diagnostic workflow
             </h2>
           </div>
           <button
             onClick={onEnterConsole}
             className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-cyan-300 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-800/60 rounded-md transition-colors"
           >
-            <span>Open Full Screen Console</span>
+            <span>Open Operations Console</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -201,7 +201,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             <div>
               <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-2">
                 <Sparkles className="w-4 h-4" />
-                <span>Autonomous AI Work Order Triaged</span>
+                <span>AI-assisted work-order draft</span>
               </div>
               <h4 className="text-sm font-bold text-white leading-tight">
                 Urgent Tool Wear & Spindle Thermal Overhaul
@@ -226,7 +226,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               onClick={onEnterConsole}
               className="w-full py-2 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded transition-colors"
             >
-              Dispatch to CMMS Technician
+              Review draft in console
             </button>
           </div>
 
@@ -256,7 +256,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             {/* Number of Critical Assets */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-300">Number of Monitored Critical Assets</span>
+                <span className="text-slate-300">Number of assets in this illustrative fleet</span>
                 <span className="text-cyan-400 font-bold text-sm">{numAssets} Heavy Machines</span>
               </div>
               <input
@@ -278,7 +278,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             {/* Downtime Cost Per Hour */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-300">Average Cost of Unplanned Downtime ($/Hour)</span>
+                <span className="text-slate-300">Cost of downtime per asset ($/hour)</span>
                 <span className="text-rose-400 font-bold text-sm">${downtimeCostPerHour.toLocaleString()} / hr</span>
               </div>
               <input
@@ -300,7 +300,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             {/* Historical Downtime Hours */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-300">Annual Unplanned Downtime Incurred</span>
+                <span className="text-slate-300">Annual downtime hours per asset</span>
                 <span className="text-amber-400 font-bold text-sm">{annualDowntimeHours} Hours / Year</span>
               </div>
               <input
@@ -474,7 +474,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             onClick={onExploreDatasets}
             className="px-6 py-3 text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-700 rounded-lg transition-colors"
           >
-            View Real Datasets (CSV Download)
+            View benchmark samples (CSV export)
           </button>
         </div>
       </section>
