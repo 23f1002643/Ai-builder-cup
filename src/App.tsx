@@ -160,25 +160,24 @@ export default function App() {
 
   const handleOpenWorkOrderFromDiagnosis = (asset: Asset, diagnosis: DiagnosticReport) => {
     const newOrder: WorkOrder = {
-      id: `WO-2026-${Math.floor(3000 + Math.random() * 7000)}`,
+      id: `WO-DEMO-${Date.now()}`,
       assetId: asset.id,
       assetName: asset.name,
-      title: `${diagnosis.faultType} Corrective Overhaul`,
+      title: `Review AI-assisted finding: ${diagnosis.faultType}`,
       priority: diagnosis.severity === 'CRITICAL' ? 'P1-CRITICAL' : 'P2-HIGH',
-      status: 'DISPATCHED',
+      status: 'TRIGGERED',
       createdAt: 'Just now',
-      triggerReason: `AI Diagnosis (${diagnosis.confidenceScore}% conf): ${diagnosis.rootCauseSummary}`,
-      assignedTechnician: 'Condition Monitoring Specialist',
+      triggerReason: `AI-assisted draft requiring human validation: ${diagnosis.rootCauseSummary}`,
+      assignedTechnician: 'Unassigned — review required',
       estimatedDurationMinutes: Math.round(diagnosis.estimatedRepairHours * 60),
       safetyPrecautions: [
-        'Apply NFPA 70E Lock-Out Tag-Out protocol',
-        `Compliance Standard: ${diagnosis.standardsCompliance}`,
-        'Verify zero mechanical stored energy'
+        'Draft only: a qualified maintenance professional must validate findings and tasks before use.',
+        'Follow site-approved lock-out/tag-out, isolation, and manufacturer procedures.'
       ],
       tasks: [
-        { step: 1, instruction: 'Isolate main electrical breaker and test for zero voltage with calibrated meter', verified: false },
-        { step: 2, instruction: diagnosis.recommendedAction, verified: false },
-        { step: 3, instruction: 'Re-assemble and verify baseline vibration FFT peak < 2.2 mm/s', verified: false }
+        { step: 1, instruction: 'Review the input measurements and supporting evidence with a qualified maintenance professional.', verified: false },
+        { step: 2, instruction: diagnosis.recommendedAction || 'No validated action was provided; collect more evidence before planning work.', verified: false },
+        { step: 3, instruction: 'Confirm site-approved isolation and post-maintenance verification before scheduling.', verified: false }
       ],
       consumableParts: (diagnosis.requiredParts || []).map(p => ({
         sku: p.partNumber,
@@ -253,6 +252,10 @@ export default function App() {
         onToggleStreaming={() => setIsStreaming(!isStreaming)}
         criticalAlertsCount={criticalCount}
       />
+
+      <div role="note" className="border-b border-sky-200 bg-sky-50 px-4 py-2 text-center text-xs font-medium text-sky-900">
+        Demo workspace · asset records and work orders are seeded examples · sensor values are simulated · no live plant or CMMS is connected.
+      </div>
 
       {/* Main App Content Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
