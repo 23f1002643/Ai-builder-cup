@@ -33,6 +33,7 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
   const [selectedSensorId, setSelectedSensorId] = useState<string>(selectedAsset.sensors[0].id);
   const [isDiagnosing, setIsDiagnosing] = useState<boolean>(false);
   const [diagnosticReport, setDiagnosticReport] = useState<DiagnosticReport | null>(null);
+  const [diagnosticError, setDiagnosticError] = useState<string | null>(null);
   const [spectrumMode, setSpectrumMode] = useState<'FFT' | 'TIME_WAVE'>('FFT');
 
   const fftCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -168,9 +169,11 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
     };
   }, [spectrumMode, selectedAsset]);
 
-  // Trigger Gemini AI Diagnosis
+  // Request a diagnostic draft from the configured AI service.
   const handleRunAiDiagnosis = async () => {
     setIsDiagnosing(true);
+    setDiagnosticError(null);
+    setDiagnosticReport(null);
     try {
       const response = await fetch('/api/diagnose', {
         method: 'POST',
@@ -183,9 +186,15 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
       });
 
       const report = await response.json();
+      if (!response.ok) {
+        throw new Error(report?.error || `Diagnostic service returned HTTP ${response.status}`);
+      }
       setDiagnosticReport(report);
     } catch (err) {
-      console.error(err);
+      console.error('Diagnostic request failed:', err);
+      setDiagnosticError(err instanceof Error
+        ? err.message
+        : 'The AI diagnosis could not be generated. No diagnosis was produced.');
     } finally {
       setIsDiagnosing(false);
     }
@@ -193,6 +202,15 @@ export const TelemetryView: React.FC<TelemetryViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      <div role="note" className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+        <strong>Demo mode:</strong> sensor readings and the waveform below are simulated in the browser. AI output is advisory only and must be reviewed by a qualified maintainer.
+      </div>
+      {diagnosticError && (
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <span>{diagnosticError}</span>
+          <button type="button" onClick={() => setDiagnosticError(null)} className="rounded-lg px-2 py-1 font-semibold hover:bg-rose-100" aria-label="Dismiss diagnostic error">Dismiss</button>
+        </div>
+      )}
       
       {/* Top Asset Selector & Status Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
