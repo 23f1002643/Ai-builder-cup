@@ -63,10 +63,10 @@ export const FleetScanModal: React.FC<FleetScanModalProps> = ({
             <Zap className="w-5 h-5 text-cyan-400" />
             <div>
               <h3 className="text-base font-bold text-white tracking-tight">
-                Automated Fleet Health & Sensor Telemetry Audit
+                Demo Fleet Health & Telemetry Scan
               </h3>
               <p className="text-xs text-slate-400">
-                128 multi-modal sensor channels scanned across 6 production machinery bays
+                Reviewing seeded sample assets and browser-generated sensor indicators
               </p>
             </div>
           </div>
@@ -86,7 +86,7 @@ export const FleetScanModal: React.FC<FleetScanModalProps> = ({
             <div className="space-y-2 py-8 text-center">
               <Sparkles className="w-8 h-8 mx-auto text-cyan-400 animate-spin" />
               <div className="text-sm font-semibold text-white">
-                Auditing IoT streams, harmonic spectral orders, and RUL degradation curves...
+                Reviewing demo asset records and simulated telemetry...
               </div>
               <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden max-w-md mx-auto mt-3">
                 <div 

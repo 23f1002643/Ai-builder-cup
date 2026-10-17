@@ -27,6 +27,7 @@ export default function App() {
   const [selectedAsset, setSelectedAsset] = useState<Asset>(INITIAL_ASSETS[1]); // Default to CNC-04 (Critical)
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
   const [isChatbotOpen, setIsChatbotOpen] = useState<boolean>(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Modals
   const [isFaultSimulatorOpen, setIsFaultSimulatorOpen] = useState<boolean>(false);
@@ -92,6 +93,7 @@ export default function App() {
   };
 
   const handleApplyFault = async (updatedAsset: Asset, faultDescription: string) => {
+    setActionError(null);
     setAssets(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
     setSelectedAsset(updatedAsset);
 
@@ -106,36 +108,38 @@ export default function App() {
         })
       });
       const generatedOrder = await response.json();
+      if (!response.ok) {
+        throw new Error(generatedOrder?.error || `Work-order service returned HTTP ${response.status}`);
+      }
+
+      const draftTasks = Array.isArray(generatedOrder.tasks) && generatedOrder.tasks.length > 0
+        ? generatedOrder.tasks
+        : [{ step: 1, instruction: 'Review the reported fault and follow site-approved procedures. AI did not provide a verified task list.', verified: false }];
 
       const newWorkOrder: WorkOrder = {
-        id: `WO-2026-${Math.floor(2000 + Math.random() * 8000)}`,
+        id: `WO-DEMO-${Date.now()}`,
         assetId: updatedAsset.id,
         assetName: updatedAsset.name,
-        title: generatedOrder.title || `Emergency Servicing: ${faultDescription.split(':')[0]}`,
-        priority: generatedOrder.priority || 'P1-CRITICAL',
+        title: generatedOrder.title || `Review maintenance alert: ${faultDescription.split(':')[0]}`,
+        priority: generatedOrder.priority || 'P3-MEDIUM',
         status: 'TRIGGERED',
         createdAt: 'Just now',
         triggerReason: faultDescription,
-        assignedTechnician: `${generatedOrder.assignedTeam || 'Reliability Response Team'} (Auto-Dispatched)`,
-        estimatedDurationMinutes: generatedOrder.estimatedDurationMinutes || 120,
-        tasks: generatedOrder.tasks || [
-          { step: 1, instruction: 'Execute NFPA 70E Lock-out/Tag-out on main feeder line', verified: false },
-          { step: 2, instruction: 'Perform stroboscopic vibration and runout verification', verified: false },
-          { step: 3, instruction: 'Extract degraded component and replace with OEM spares', verified: false }
-        ],
-        consumableParts: generatedOrder.consumableParts || [
-          { sku: 'OEM-BRG-SPEC', name: 'High Precision Spindle Bearing Set', quantity: 1, unit: 'sets' },
-          { sku: 'LUB-SYN-SHC', name: 'Synthetic ISO VG 46 Oil 5L', quantity: 1, unit: 'can' }
-        ],
-        safetyPrecautions: generatedOrder.safetyPrecautions || [
-          'De-energize main high-voltage bus before opening enclosure',
-          'Allow machine thermal dissipation to fall below 45°C'
-        ]
+        assignedTechnician: `${generatedOrder.assignedTeam || 'Unassigned'} (Draft — not dispatched)`,
+        estimatedDurationMinutes: generatedOrder.estimatedDurationMinutes || 0,
+        tasks: draftTasks,
+        consumableParts: Array.isArray(generatedOrder.consumableParts) ? generatedOrder.consumableParts : [],
+        safetyPrecautions: Array.isArray(generatedOrder.safetyPrecautions)
+          ? generatedOrder.safetyPrecautions
+          : ['Technician review required. Follow site-approved lock-out/tag-out and OEM procedures.']
       };
 
       setWorkOrders(prev => [newWorkOrder, ...prev]);
     } catch (err) {
       console.error('Work order generation error:', err);
+      setActionError(err instanceof Error
+        ? `Work-order draft was not created: ${err.message}`
+        : 'Work-order draft was not created. Check AI service configuration and try again.');
     }
 
     setCurrentTab('telemetry');
@@ -156,25 +160,24 @@ export default function App() {
 
   const handleOpenWorkOrderFromDiagnosis = (asset: Asset, diagnosis: DiagnosticReport) => {
     const newOrder: WorkOrder = {
-      id: `WO-2026-${Math.floor(3000 + Math.random() * 7000)}`,
+      id: `WO-DEMO-${Date.now()}`,
       assetId: asset.id,
       assetName: asset.name,
-      title: `${diagnosis.faultType} Corrective Overhaul`,
+      title: `Review AI-assisted finding: ${diagnosis.faultType}`,
       priority: diagnosis.severity === 'CRITICAL' ? 'P1-CRITICAL' : 'P2-HIGH',
-      status: 'DISPATCHED',
+      status: 'TRIGGERED',
       createdAt: 'Just now',
-      triggerReason: `AI Diagnosis (${diagnosis.confidenceScore}% conf): ${diagnosis.rootCauseSummary}`,
-      assignedTechnician: 'Condition Monitoring Specialist',
-      estimatedDurationMinutes: Math.round(diagnosis.estimatedRepairHours * 60),
+      triggerReason: `AI-assisted draft requiring human validation: ${diagnosis.rootCauseSummary}`,
+      assignedTechnician: 'Unassigned — review required',
+      estimatedDurationMinutes: diagnosis.estimatedRepairHours == null ? 0 : Math.round(diagnosis.estimatedRepairHours * 60),
       safetyPrecautions: [
-        'Apply NFPA 70E Lock-Out Tag-Out protocol',
-        `Compliance Standard: ${diagnosis.standardsCompliance}`,
-        'Verify zero mechanical stored energy'
+        'Draft only: a qualified maintenance professional must validate findings and tasks before use.',
+        'Follow site-approved lock-out/tag-out, isolation, and manufacturer procedures.'
       ],
       tasks: [
-        { step: 1, instruction: 'Isolate main electrical breaker and test for zero voltage with calibrated meter', verified: false },
-        { step: 2, instruction: diagnosis.recommendedAction, verified: false },
-        { step: 3, instruction: 'Re-assemble and verify baseline vibration FFT peak < 2.2 mm/s', verified: false }
+        { step: 1, instruction: 'Review the input measurements and supporting evidence with a qualified maintenance professional.', verified: false },
+        { step: 2, instruction: diagnosis.recommendedAction || 'No validated action was provided; collect more evidence before planning work.', verified: false },
+        { step: 3, instruction: 'Confirm site-approved isolation and post-maintenance verification before scheduling.', verified: false }
       ],
       consumableParts: (diagnosis.requiredParts || []).map(p => ({
         sku: p.partNumber,
@@ -190,30 +193,25 @@ export default function App() {
 
   const handleDispatchThermalWorkOrder = (scanResult: ThermalScanResult) => {
     const newOrder: WorkOrder = {
-      id: `WO-2026-${Math.floor(4000 + Math.random() * 6000)}`,
+      id: `WO-DEMO-${Date.now()}`,
       assetId: 'asset-blower-02',
-      assetName: 'Rotary Kiln Induction Blower KB-02',
-      title: 'Emergency Radiometric Hotspot & Bearing Overhaul',
-      priority: 'P1-CRITICAL',
-      status: 'DISPATCHED',
+      assetName: 'Rotary Kiln Induction Blower KB-02 (demo asset)',
+      title: 'Review AI-assisted thermal inspection findings',
+      priority: scanResult.severityRating === 'CRITICAL' ? 'P1-CRITICAL' : 'P2-HIGH',
+      status: 'TRIGGERED',
       createdAt: 'Just now',
-      triggerReason: `FLIR Thermal Anomaly: Hotspot ${scanResult.maxObservedTempC}°C (+${scanResult.deltaT}°C Delta-T)`,
-      assignedTechnician: 'Thermal & Rotating Machinery Field Team',
-      estimatedDurationMinutes: 180,
+      triggerReason: `Draft from image analysis: ${scanResult.primaryAnomaly}. Temperatures and observations require qualified review.`,
+      assignedTechnician: 'Unassigned — human review required',
+      estimatedDurationMinutes: 0,
       safetyPrecautions: [
-        'Hot work environment: Wear thermal barrier suit and face shield',
-        'Lock-out 480V VFD cabinet'
+        'This is an unapproved draft; do not use it as a work instruction.',
+        'Have a qualified technician validate the image, measurements, and site-approved procedures before action.'
       ],
       tasks: [
-        { step: 1, instruction: 'De-energize blower motor and allow housing to cool below 50°C', verified: false },
-        { step: 2, instruction: scanResult.correctiveAction, verified: false },
-        { step: 3, instruction: 'Inspect bearing raceway micro-welding and grease cavity for carbonization', verified: false },
-        { step: 4, instruction: 'Install new SKF spherical roller bearing and verify thermal gradient with FLIR camera', verified: false }
+        { step: 1, instruction: 'Have a qualified technician validate the inspection findings against calibrated equipment and site procedures.', verified: false },
+        { step: 2, instruction: scanResult.correctiveAction || 'No corrective action was validated by this prototype.', verified: false }
       ],
-      consumableParts: [
-        { sku: 'SKF-22212-E', name: 'Spherical Roller Bearing 60mm bore', quantity: 1, unit: 'pcs' },
-        { sku: 'MOB-SHC-460', name: 'High-Temperature Synthetic Grease', quantity: 2, unit: 'cartridge' }
-      ]
+      consumableParts: []
     };
 
     setWorkOrders(prev => [newOrder, ...prev]);
@@ -255,8 +253,25 @@ export default function App() {
         criticalAlertsCount={criticalCount}
       />
 
+      <div role="note" className="border-b border-sky-200 bg-sky-50 px-4 py-2 text-center text-xs font-medium text-sky-900">
+        Demo workspace · asset records and work orders are seeded examples · sensor values are simulated · no live plant or CMMS is connected.
+      </div>
+
       {/* Main App Content Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
+        {actionError && (
+          <div role="alert" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 shadow-sm">
+            <span>{actionError}</span>
+            <button
+              type="button"
+              onClick={() => setActionError(null)}
+              className="shrink-0 rounded-lg px-2 py-1 font-semibold hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-rose-500"
+              aria-label="Dismiss error"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         
         {/* Startup Website Landing */}
         {currentTab === 'startup' && (

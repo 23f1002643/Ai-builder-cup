@@ -144,7 +144,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={onToggleStreaming}
-            title={isStreaming ? 'Pause live sensor telemetry ingest' : 'Resume live sensor telemetry ingest'}
+            title={isStreaming ? 'Pause simulated browser telemetry updates' : 'Resume simulated browser telemetry updates'}
             className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono rounded border transition-colors whitespace-nowrap ${
               isStreaming
                 ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-300'
@@ -152,7 +152,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
             }`}
           >
             <Radio className={`w-3.5 h-3.5 ${isStreaming ? 'animate-pulse text-emerald-400' : 'text-slate-400'}`} />
-            <span>{isStreaming ? 'IoT LIVE' : 'IoT PAUSED'}</span>
+            <span>{isStreaming ? 'DEMO STREAM' : 'SIMULATION PAUSED'}</span>
           </button>
 
           {currentTab === 'startup' ? (
@@ -160,7 +160,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
               onClick={() => onSelectTab('fleet')}
               className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-md transition-colors whitespace-nowrap shrink-0 shadow-md shadow-cyan-950"
             >
-              <span>Launch Live Console</span>
+              <span>Open Operations Console</span>
             </button>
           ) : (
             <button

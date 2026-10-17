@@ -94,9 +94,9 @@ export const WorkOrdersView: React.FC<WorkOrdersViewProps> = ({
       assetName: targetAsset.name,
       title: formTitle || `Preventive Maintenance: ${targetAsset.name}`,
       priority: formPriority,
-      status: 'DISPATCHED',
+      status: 'TRIGGERED',
       createdAt: 'Just now',
-      triggerReason: 'Manual Engineer Dispatch from Daxoriq Operations Console',
+      triggerReason: 'Created in the local demo console; not synced to a CMMS.',
       assignedTechnician: formTechnician,
       estimatedDurationMinutes: formDuration,
       safetyPrecautions: [
@@ -129,10 +129,10 @@ export const WorkOrdersView: React.FC<WorkOrdersViewProps> = ({
         <div>
           <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
             <Wrench className="w-5 h-5 text-cyan-400" />
-            <span>CMMS Work Orders & Maintenance Dispatch</span>
+            <span>Maintenance Work Orders · Demo</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Automated work order creation from AI anomaly trips, technician task execution, and digital sign-off.
+            Seeded sample work orders and local draft creation. Status changes are demo-only; there is no connected CMMS or live technician sign-off.
           </p>
         </div>
 
@@ -478,7 +478,7 @@ export const WorkOrdersView: React.FC<WorkOrdersViewProps> = ({
                   type="submit"
                   className="px-4 py-1.5 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded transition-colors"
                 >
-                  Create & Dispatch
+                  Create Draft
                 </button>
               </div>
             </form>

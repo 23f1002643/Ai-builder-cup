@@ -27,51 +27,73 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
   );
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [inspectionResult, setInspectionResult] = useState<ThermalScanResult | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [probeCoords, setProbeCoords] = useState<{ x: number; y: number } | null>(null);
-  const [hoveredTemp, setHoveredTemp] = useState<number | null>(null);
 
   const imageContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Handle cursor thermal probe calculation
+  // Show cursor coordinates only. Pixel coordinates are not calibrated temperature readings.
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-
     setProbeCoords({ x: Math.round(x * 100), y: Math.round(y * 100) });
-
-    // Approximate thermal distribution centered around (50%, 45%) where bearing hotspot is
-    const distFromCenter = Math.hypot(x - 0.52, y - 0.44);
-    let temp = 42.0;
-    if (distFromCenter < 0.22) {
-      temp = 138.4 - distFromCenter * 380;
-    } else {
-      temp = 47.0 + Math.random() * 5.0;
-    }
-    setHoveredTemp(Math.max(38.0, Math.min(138.4, Number(temp.toFixed(1)))));
   };
 
   const handleMouseLeave = () => {
     setProbeCoords(null);
-    setHoveredTemp(null);
   };
 
   const handleRunThermalAi = async () => {
     setIsAnalyzing(true);
+    setAnalysisError(null);
+    setInspectionResult(null);
     try {
+      // Convert the currently displayed image (uploaded data URL or bundled asset)
+      // into the base64 payload required by the API.
+      let dataUrl = selectedImageSrc;
+      if (!selectedImageSrc.startsWith('data:')) {
+        const imageResponse = await fetch(selectedImageSrc);
+        if (!imageResponse.ok) {
+          throw new Error('Could not load the example image. Upload an inspection image and try again.');
+        }
+        const imageBlob = await imageResponse.blob();
+        dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Could not read the image.'));
+          reader.onerror = () => reject(new Error('Could not read the image.'));
+          reader.readAsDataURL(imageBlob);
+        });
+      }
+
+      const commaIndex = dataUrl.indexOf(',');
+      if (commaIndex < 0) {
+        throw new Error('The selected image could not be prepared. Please upload it again.');
+      }
+      const mimeType = dataUrl.slice(5, dataUrl.indexOf(';')) || 'image/jpeg';
+      const imageBase64 = dataUrl.slice(commaIndex + 1);
+
       const response = await fetch('/api/analyze-thermal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inspectionNotes: 'Radiometric FLIR E95 infrared thermal scan of heavy motor bearing casing at Bay Delta Kiln Blower KB-02',
+          imageBase64,
+          mimeType,
+          inspectionNotes: 'Prototype image review. Do not assume calibrated radiometric temperature unless a readable scale appears in the image.',
         }),
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || `Image-analysis service returned HTTP ${response.status}`);
+      }
       setInspectionResult(data);
     } catch (err) {
-      console.error(err);
+      console.error('Thermal image analysis failed:', err);
+      setAnalysisError(err instanceof Error
+        ? err.message
+        : 'Thermal image analysis failed. No measurements or diagnosis were generated.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -91,6 +113,15 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      <div role="note" className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+        <strong>Image review only:</strong> a normal image is not a calibrated thermogram. Any AI observations are tentative and must be checked with calibrated equipment by a qualified technician.
+      </div>
+      {analysisError && (
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <span>{analysisError}</span>
+          <button type="button" onClick={() => setAnalysisError(null)} className="rounded-lg px-2 py-1 font-semibold hover:bg-rose-100" aria-label="Dismiss image analysis error">Dismiss</button>
+        </div>
+      )}
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -127,7 +158,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
             <div>
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <Flame className="w-4 h-4 text-amber-400" />
-                <span>FLIR E95 Radiometric Thermogram</span>
+                <span>FLIR E95 Image review · illustrative overlay</span>
               </h3>
               <p className="text-xs text-slate-400">
                 Asset: <strong className="text-slate-200">Rotary Kiln Blower KB-02</strong> · Drive-End Bearing Housing
@@ -136,9 +167,9 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
 
             {/* Probe Display */}
             <div className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs font-mono">
-              <span className="text-slate-400">Spot Probe: </span>
-              <strong className={hoveredTemp && hoveredTemp > 90 ? 'text-rose-400' : 'text-cyan-400'}>
-                {hoveredTemp ? `${hoveredTemp}°C` : 'Hover Image'}
+              <span className="text-slate-400">Image position: </span>
+              <strong className="text-cyan-700">
+                {probeCoords ? `X ${probeCoords.x}% · Y ${probeCoords.y}%` : 'Hover image'}
               </strong>
             </div>
           </div>
@@ -165,7 +196,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
               >
                 <Crosshair className="w-6 h-6 text-cyan-300 drop-shadow-md animate-pulse" />
                 <span className="bg-slate-950/90 text-white border border-cyan-500 text-[10px] font-mono px-1.5 py-0.5 rounded shadow-lg">
-                  {hoveredTemp}°C
+                  X {probeCoords.x}% · Y {probeCoords.y}%
                 </span>
               </div>
             )}
@@ -173,7 +204,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
             {/* Pre-annotated Hotspot Callout Box */}
             <div className="absolute top-[35%] left-[38%] w-[28%] h-[32%] border-2 border-dashed border-rose-500 rounded pointer-events-none animate-pulse">
               <span className="absolute -top-6 left-0 bg-rose-950/90 text-rose-300 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-rose-800">
-                HOTSPOT MAX: 138.4°C
+                Illustrative overlay · not measured
               </span>
             </div>
           </div>
@@ -181,9 +212,9 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
           {/* Radiometric Palette Scale */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span>30.0°C (Ambient Background)</span>
-              <span className="text-amber-400">75.0°C (Warning Threshold)</span>
-              <span className="text-rose-400 font-bold">140.0°C (Maximum Range)</span>
+              <span>Color palette: illustrative</span>
+              <span>Not a calibrated temperature scale</span>
+              <span className="text-rose-400 font-bold">Use calibrated equipment</span>
             </div>
             <div className="h-3 w-full rounded bg-gradient-to-r from-blue-900 via-indigo-600 via-emerald-500 via-yellow-400 to-red-600 border border-slate-800" />
           </div>
@@ -195,7 +226,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-md transition-colors shadow-sm disabled:opacity-50"
           >
             <Sparkles className={`w-4 h-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-            <span>{isAnalyzing ? 'Analyzing Radiometric IR Imagery with Gemini...' : 'Analyze Thermal Scan with Gemini AI'}</span>
+            <span>{isAnalyzing ? 'Reviewing image with Gemini...' : 'Review Image with Gemini AI'}</span>
           </button>
 
         </div>
@@ -221,12 +252,12 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
                 {/* Temperature Overview */}
                 <div className="grid grid-cols-2 gap-3 font-mono">
                   <div className="bg-slate-950 border border-slate-800 rounded p-3">
-                    <span className="text-slate-400 text-[10px] block">Max Observed Temp</span>
-                    <span className="text-rose-400 font-bold text-xl">{inspectionResult.maxObservedTempC}°C</span>
+                    <span className="text-slate-400 text-[10px] block">AI-reported max temperature (if readable)</span>
+                    <span className="text-rose-400 font-bold text-xl">{inspectionResult.maxObservedTempC == null ? 'Not measurable' : `${inspectionResult.maxObservedTempC}°C (unverified)`}</span>
                   </div>
                   <div className="bg-slate-950 border border-slate-800 rounded p-3">
-                    <span className="text-slate-400 text-[10px] block">Delta-T above Ambient</span>
-                    <span className="text-amber-400 font-bold text-xl">+{inspectionResult.deltaT}°C</span>
+                    <span className="text-slate-400 text-[10px] block">AI-reported delta-T (if readable)</span>
+                    <span className="text-amber-400 font-bold text-xl">{inspectionResult.deltaT == null ? 'Not measurable' : `+${inspectionResult.deltaT}°C (unverified)`}</span>
                   </div>
                 </div>
 
@@ -240,12 +271,12 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
 
                 {/* Identified Hotspots Breakdown */}
                 <div className="space-y-1.5">
-                  <span className="text-slate-400 text-[11px] font-medium">Radiometric Zone Breakdown:</span>
+                  <span className="text-slate-400 text-[11px] font-medium">Possible visual observations (unverified):</span>
                   <div className="space-y-1">
                     {inspectionResult.identifiedHotspots.map((hs, i) => (
                       <div key={i} className="flex items-center justify-between bg-slate-950 px-2.5 py-1.5 rounded border border-slate-800 font-mono text-[11px]">
                         <span className="text-slate-300">{hs.zone}</span>
-                        <span className="text-cyan-300 font-bold">{hs.tempC}°C</span>
+                        <span className="text-cyan-300 font-bold">{hs.tempC == null ? 'Not measurable' : `${hs.tempC}°C (unverified)`}</span>
                         <span className="text-slate-400 text-[10px]">{hs.status}</span>
                       </div>
                     ))}
@@ -256,7 +287,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
                 <div className="bg-rose-950/20 border border-rose-900/40 rounded p-3 space-y-1">
                   <span className="text-rose-400 font-bold text-[11px] flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Catastrophic Seizure Risk</span>
+                    <span>Potential issue (unverified)</span>
                   </span>
                   <p className="text-rose-200/90 text-[11px] leading-relaxed">
                     {inspectionResult.failureRisk}
@@ -267,7 +298,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
                 <div className="bg-slate-950 border border-slate-800 rounded p-3 space-y-1">
                   <span className="text-amber-400 font-bold text-[11px] flex items-center gap-1.5">
                     <Wrench className="w-3.5 h-3.5" />
-                    <span>Immediate Corrective Action</span>
+                    <span>Suggested next step (human review)</span>
                   </span>
                   <p className="text-slate-300 text-[11px] leading-relaxed">
                     {inspectionResult.correctiveAction}
@@ -280,7 +311,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
                   className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-rose-200 bg-rose-950 hover:bg-rose-900 border border-rose-800 rounded transition-colors"
                 >
                   <Wrench className="w-3.5 h-3.5 text-rose-400" />
-                  <span>Dispatch Emergency Thermal Work Order</span>
+                  <span>Create review draft</span>
                 </button>
 
               </div>
@@ -288,7 +319,7 @@ export const ThermalInspectionView: React.FC<ThermalInspectionViewProps> = ({
               <div className="text-center py-12 text-slate-500 space-y-2">
                 <Camera className="w-8 h-8 mx-auto text-slate-600" />
                 <p className="text-xs">
-                  Click <strong className="text-slate-400">Analyze Thermal Scan with Gemini AI</strong> to evaluate temperature gradients, hotspot deltas, and risk of bearing seizure.
+                  Upload or review an inspection image to get tentative visual observations. This prototype cannot determine calibrated temperature readings from a normal image.
                 </p>
               </div>
             )}

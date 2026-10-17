@@ -58,14 +58,16 @@ export interface WorkOrder {
 export interface DiagnosticReport {
   severity: 'NORMAL' | 'MODERATE' | 'HIGH' | 'CRITICAL';
   faultType: string;
-  confidenceScore: number;
+  // These remain null until a validated predictive model / verified maintenance records exist.
+  confidenceScore: number | null;
   rootCauseSummary: string;
-  failureProbability72h: number;
+  failureProbability72h: number | null;
   standardsCompliance: string;
   recommendedAction: string;
   urgency: 'IMMEDIATE_STOP' | 'SCHEDULE_24H' | 'MONITOR_NEXT_SHIFT' | 'NOMINAL';
-  estimatedRepairHours: number;
-  requiredParts: { partNumber: string; description: string; inStock: boolean }[];
+  estimatedRepairHours: number | null;
+  // Availability cannot be asserted without a connected parts catalog.
+  requiredParts: { partNumber: string; description: string; inStock: boolean | null }[];
 }
 
 export interface BenchmarkDataPoint {
@@ -100,11 +102,12 @@ export interface BenchmarkDataset {
 }
 
 export interface ThermalScanResult {
-  maxObservedTempC: number;
-  deltaT: number;
+  // Numeric fields are nullable because non-radiometric images cannot establish temperature.
+  maxObservedTempC: number | null;
+  deltaT: number | null;
   severityRating: 'CRITICAL' | 'SERIOUS' | 'ADVISORY' | 'NORMAL';
   primaryAnomaly: string;
-  identifiedHotspots: { zone: string; tempC: number; status: string }[];
+  identifiedHotspots: { zone: string; tempC: number | null; status: string }[];
   failureRisk: string;
   correctiveAction: string;
 }

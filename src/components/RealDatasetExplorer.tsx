@@ -57,10 +57,10 @@ export const RealDatasetExplorer: React.FC = () => {
 
     if (activeDataset === 'cmapss') {
       csvContent = convertCMAPSSToCSV(REAL_CMAPSS_DATA);
-      fileName = 'daxoriq_nasa_cmapss_fd001_real.csv';
+      fileName = 'daxoriq_nasa_cmapss_embedded_sample.csv';
     } else {
       csvContent = convertAI4IToCSV(REAL_AI4I_DATA);
-      fileName = 'daxoriq_uci_ai4i_2020_real.csv';
+      fileName = 'daxoriq_uci_ai4i_2020_embedded_sample.csv';
     }
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -83,7 +83,7 @@ export const RealDatasetExplorer: React.FC = () => {
       const text = event.target?.result as string;
       const lines = text.split('\n').filter(l => l.trim().length > 0);
       setCustomRowsCount(lines.length - 1);
-      setUploadSuccessMessage(`Successfully ingested ${lines.length - 1} records from ${file.name}. RUL model inference ready.`);
+      setUploadSuccessMessage(`Read ${Math.max(0, lines.length - 1)} data rows from ${file.name}. This prototype only counts CSV rows; no inference was run.`);
       setTimeout(() => setUploadSuccessMessage(null), 5000);
     };
     reader.readAsText(file);
@@ -98,14 +98,14 @@ export const RealDatasetExplorer: React.FC = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
               <Database className="w-5 h-5 text-cyan-400" />
-              <span>Real Industrial Datasets & Telemetry Registry</span>
+              <span>Public Benchmark Samples & Data Explorer</span>
             </h2>
             <span className="text-xs font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 px-2 py-0.5 rounded">
-              Verified Open-Source
+              Embedded sample rows
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-            Inspect, filter, and download genuine sensor records from NASA C-MAPSS and UCI AI4I. Upload your own CSV logs to run instant RUL scoring and failure prediction.
+            Inspect a small set of example rows based on public NASA C-MAPSS and UCI AI4I benchmark datasets. This view does not contain the complete source datasets or run model inference. CSV upload currently counts rows only.
           </p>
         </div>
 
@@ -154,17 +154,17 @@ export const RealDatasetExplorer: React.FC = () => {
             <span className="text-[10px] font-mono text-slate-400">FD001 Sea-Level Simulation</span>
           </div>
           <h3 className="text-sm font-bold text-white tracking-tight">
-            NASA C-MAPSS Turbofan Run-to-Failure Series
+            NASA C-MAPSS Turbofan Sample Rows
           </h3>
           <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-            Real degradation recordings across complete operational cycles. Features HPC outlet temp (T30), LPT coolant bleed (W32), core speeds, and ground truth Remaining Useful Life (RUL).
+            Selected example rows based on NASA C-MAPSS FD001 fields. The complete official dataset contains many more engine-cycle records; these embedded samples are not a full source-data download.
           </p>
           <div className="mt-3 flex items-center gap-4 text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800/70">
             <span>21 Sensor Channels</span>
             <span>·</span>
-            <span>206 Cycle Fail Trajectory</span>
+            <span>Sampled cycles only</span>
             <span>·</span>
-            <span className="text-emerald-400">RMSE: 14.2</span>
+            <span className="text-emerald-400">Model: not evaluated</span>
           </div>
         </div>
 
@@ -182,20 +182,20 @@ export const RealDatasetExplorer: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-mono font-bold text-cyan-400">UCI ML Repository</span>
-            <span className="text-[10px] font-mono text-slate-400">10,000 Real Process Rows</span>
+            <span className="text-[10px] font-mono text-slate-400">10,000-row synthetic dataset</span>
           </div>
           <h3 className="text-sm font-bold text-white tracking-tight">
             UCI AI4I 2020 CNC Predictive Maintenance
           </h3>
           <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-            Milling process telemetry capturing 5 verified industrial failure modes: Tool Wear Failure (TWF), Heat Dissipation Failure (HDF), Power Failure (PWF), Overstrain (OSF), and Random Failure.
+            UCI AI4I 2020 is a synthetic dataset designed to reflect predictive-maintenance use cases. The embedded sample here contains selected rows only, including failure-mode labels when present.
           </p>
           <div className="mt-3 flex items-center gap-4 text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800/70">
             <span>6 Key Physical Features</span>
             <span>·</span>
             <span>5 Failure Modes</span>
             <span>·</span>
-            <span className="text-emerald-400">F1-Score: 97.4%</span>
+            <span className="text-emerald-400">Model: not evaluated</span>
           </div>
         </div>
 
@@ -375,10 +375,10 @@ export const RealDatasetExplorer: React.FC = () => {
         {/* Dataset Summary Strip */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
           <span>
-            Displaying <strong className="text-white font-mono">{activeDataset === 'cmapss' ? filteredCmapss.length : filteredAi4i.length}</strong> real industrial observations.
+            Displaying <strong className="text-white font-mono">{activeDataset === 'cmapss' ? filteredCmapss.length : filteredAi4i.length}</strong> embedded sample rows — not the complete source dataset.
           </span>
           <span className="font-mono text-cyan-400">
-            Source: NASA Ames PCoE & UCI AI4I 2020 Predictive Maintenance
+            Sources: NASA C-MAPSS & UCI AI4I 2020 · selected embedded sample rows
           </span>
         </div>
 

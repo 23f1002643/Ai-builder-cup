@@ -40,11 +40,10 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
   const [annualDowntimeHours, setAnnualDowntimeHours] = useState<number>(160);
 
   // ROI Math
-  const totalCurrentDowntimeCost = annualDowntimeHours * downtimeCostPerHour;
-  const estimatedSavings = Math.round(totalCurrentDowntimeCost * 0.385); // 38.5% historical reduction
-  const annualPlatformFee = numAssets * 2400;
-  const netRoiRatio = (estimatedSavings / (annualPlatformFee || 1)).toFixed(1);
-  const paybackMonths = ((annualPlatformFee / estimatedSavings) * 12).toFixed(1);
+  const totalCurrentDowntimeCost = annualDowntimeHours * downtimeCostPerHour * numAssets;
+  const assumedReductionPct = 10; // Planning assumption only; not a measured Daxoriq result.
+  const estimatedSavings = Math.round(totalCurrentDowntimeCost * (assumedReductionPct / 100));
+
 
   return (
     <div className="space-y-24 pb-20 font-sans">
@@ -59,15 +58,15 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
           
           <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-700/60 rounded-full shadow-inner">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span>Industrial Physics-Informed Prognostics · Deployed Q4 2026</span>
+            <span>Industrial maintenance intelligence · Interactive prototype</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1] text-balance">
-            Zero Unplanned Downtime for Mission-Critical Machinery.
+            Help maintenance teams act before small issues become expensive downtime.
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed text-balance">
-            Daxoriq unifies high-frequency IoT sensor telemetry, vibration spectral demodulation, and physics-informed AI to predict equipment failure up to <strong>42 hours in advance</strong> — automatically dispatching CMMS work orders and technician tasks.
+            Explore asset health signals, public maintenance benchmark samples, and AI-assisted work-order drafts. This prototype uses embedded sample records and simulated telemetry; it is not connected to a live factory or a production CMMS.
           </p>
 
           {/* Action CTAs */}
@@ -76,7 +75,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               onClick={onEnterConsole}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-all shadow-lg shadow-cyan-950 hover:shadow-cyan-900/40"
             >
-              <span>Launch Live Operations Console</span>
+              <span>Open Operations Console</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -85,35 +84,24 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
             >
               <Database className="w-4 h-4 text-cyan-400" />
-              <span>Explore Real NASA & UCI Datasets</span>
+              <span>Explore NASA & UCI sample data</span>
             </button>
           </div>
 
-          {/* Verified Quantitative Metrics Strip */}
+          {/* Prototype capability strip */}
           <div className="pt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
-            <div className="bg-slate-900/80 border border-slate-800/90 rounded-lg p-4">
-              <span className="text-2xl font-bold font-mono text-cyan-400 tabular-nums">38.5%</span>
-              <span className="text-xs text-slate-300 block font-semibold mt-1">Downtime Reduction</span>
-              <span className="text-[11px] text-slate-500 block">Verified across 12 facilities</span>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800/90 rounded-lg p-4">
-              <span className="text-2xl font-bold font-mono text-emerald-400 tabular-nums">42.5 hrs</span>
-              <span className="text-xs text-slate-300 block font-semibold mt-1">Prognostic Lead Time</span>
-              <span className="text-[11px] text-slate-500 block">Early warning ahead of seizure</span>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800/90 rounded-lg p-4">
-              <span className="text-2xl font-bold font-mono text-white tabular-nums">14.2 RMSE</span>
-              <span className="text-xs text-slate-300 block font-semibold mt-1">NASA C-MAPSS Accuracy</span>
-              <span className="text-[11px] text-slate-500 block">Turbofan benchmark gold standard</span>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800/90 rounded-lg p-4">
-              <span className="text-2xl font-bold font-mono text-amber-400 tabular-nums">$1.4M</span>
-              <span className="text-xs text-slate-300 block font-semibold mt-1">Avg Annual Savings</span>
-              <span className="text-[11px] text-slate-500 block">Per 50 critical assets</span>
-            </div>
+            {[
+              { value: String(assets.length), label: 'Demo assets', note: 'Example assets in this prototype' },
+              { value: '2', label: 'Public benchmark families', note: 'NASA C-MAPSS and UCI AI4I sample rows' },
+              { value: 'AI-assisted', label: 'Maintenance workflow', note: 'Drafts require human review' },
+              { value: 'Prototype', label: 'Data connection', note: 'Simulated telemetry; no live plant feed' },
+            ].map((metric) => (
+              <div key={metric.label} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <span className="text-xl sm:text-2xl font-bold text-slate-900 tabular-nums">{metric.value}</span>
+                <span className="text-sm text-slate-700 block font-semibold mt-1">{metric.label}</span>
+                <span className="text-xs text-slate-500 block mt-1">{metric.note}</span>
+              </div>
+            ))}
           </div>
 
         </div>
@@ -124,17 +112,17 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider block">
-              Live Console Teaser
+              Interactive console preview
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
-              High-Frequency Telemetry Ingestion & Spectral Diagnostics
+              Sample telemetry & diagnostic workflow
             </h2>
           </div>
           <button
             onClick={onEnterConsole}
             className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-cyan-300 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-800/60 rounded-md transition-colors"
           >
-            <span>Open Full Screen Console</span>
+            <span>Open Operations Console</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -213,24 +201,24 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             <div>
               <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-2">
                 <Sparkles className="w-4 h-4" />
-                <span>Autonomous AI Work Order Triaged</span>
+                <span>AI-assisted work-order draft</span>
               </div>
               <h4 className="text-sm font-bold text-white leading-tight">
-                Urgent Tool Wear & Spindle Thermal Overhaul
+                Review reported tool-wear alert
               </h4>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Carbide insert flank wear VB &gt; 0.4mm crossed threshold. Siemens Sinumerik feed thrust automated back-off engaged.
+                Example scenario only: review the reported wear values and supporting evidence before planning maintenance.
               </p>
             </div>
 
             <div className="space-y-2 pt-2 border-t border-slate-800/80 text-xs">
               <div className="flex items-center justify-between text-slate-400">
-                <span>Assigned Specialist:</span>
-                <span className="text-white font-medium">Marcus Vance (Bay Beta)</span>
+                <span>Assignment:</span>
+                <span className="text-white font-medium">Not connected</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
-                <span>Standard Compliance:</span>
-                <span className="text-emerald-400 font-mono">ISO 10816-3 Zone C</span>
+                <span>Validation:</span>
+                <span className="text-emerald-400 font-mono">Human review</span>
               </div>
             </div>
 
@@ -238,7 +226,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               onClick={onEnterConsole}
               className="w-full py-2 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded transition-colors"
             >
-              Dispatch to CMMS Technician
+              Review draft in console
             </button>
           </div>
 
@@ -250,13 +238,13 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 font-bold uppercase">
             <Calculator className="w-4 h-4" />
-            <span>Industrial Economics & Downtime Cost Calculator</span>
+            <span>Illustrative downtime-cost calculator</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
-            Quantify Your Facility's Annual Savings with Daxoriq.
+            Explore a planning estimate for your facility.
           </h2>
           <p className="text-sm text-slate-400 mt-1 max-w-2xl">
-            Slide to match your factory or fleet parameters to see projected downtime reduction and financial return on investment.
+            Adjust these assumptions to estimate the annual cost of downtime and a hypothetical avoided-cost scenario. This is not a forecast or a measured customer result.
           </p>
         </div>
 
@@ -268,7 +256,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             {/* Number of Critical Assets */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-300">Number of Monitored Critical Assets</span>
+                <span className="text-slate-300">Number of assets in this illustrative fleet</span>
                 <span className="text-cyan-400 font-bold text-sm">{numAssets} Heavy Machines</span>
               </div>
               <input
@@ -290,7 +278,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             {/* Downtime Cost Per Hour */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-300">Average Cost of Unplanned Downtime ($/Hour)</span>
+                <span className="text-slate-300">Cost of downtime per asset ($/hour)</span>
                 <span className="text-rose-400 font-bold text-sm">${downtimeCostPerHour.toLocaleString()} / hr</span>
               </div>
               <input
@@ -312,7 +300,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             {/* Historical Downtime Hours */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-300">Annual Unplanned Downtime Incurred</span>
+                <span className="text-slate-300">Annual downtime hours per asset</span>
                 <span className="text-amber-400 font-bold text-sm">{annualDowntimeHours} Hours / Year</span>
               </div>
               <input
@@ -336,23 +324,23 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
           {/* Results Display Column */}
           <div className="lg:col-span-5 bg-slate-950 border border-slate-800 rounded-xl p-6 space-y-6">
             <div>
-              <span className="text-xs font-mono text-slate-400 block uppercase">Projected Annual Savings</span>
+              <span className="text-xs font-mono text-slate-400 block uppercase">Illustrative Avoided Downtime Value</span>
               <div className="text-3xl sm:text-4xl font-extrabold font-mono text-emerald-400 mt-1">
                 ${estimatedSavings.toLocaleString()}
               </div>
               <span className="text-xs text-slate-400 block mt-1">
-                Net capital saved through 38.5% downtime prevention
+                Planning illustration using an assumed {assumedReductionPct}% reduction — validate with pilot data
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800 text-xs font-mono">
               <div className="bg-slate-900 border border-slate-800 rounded p-3">
-                <span className="text-slate-400 text-[10px] block">Net ROI Multiple</span>
-                <span className="text-cyan-400 text-lg font-bold">{netRoiRatio}x</span>
+                <span className="text-slate-400 text-[10px] block">Assumed avoided share</span>
+                <span className="text-cyan-400 text-lg font-bold">{assumedReductionPct}%</span>
               </div>
               <div className="bg-slate-900 border border-slate-800 rounded p-3">
-                <span className="text-slate-400 text-[10px] block">Payback Period</span>
-                <span className="text-white text-lg font-bold">{paybackMonths} Months</span>
+                <span className="text-slate-400 text-[10px] block">Annual downtime exposure</span>
+                <span className="text-white text-lg font-bold">${totalCurrentDowntimeCost.toLocaleString()}</span>
               </div>
             </div>
 
@@ -360,7 +348,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
               onClick={onEnterConsole}
               className="w-full py-3 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors shadow-md"
             >
-              Deploy Pilot on Your Assets
+              Open demo operations console
             </button>
           </div>
 
@@ -374,10 +362,10 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             Enterprise Architecture
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            From Sensor Edge to Autonomous Work Order Dispatch
+            From benchmark samples to human-reviewed maintenance actions
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            A modular, event-driven streaming pipeline designed for industrial reliability.
+            This prototype demonstrates the workflow with simulated sensor updates; live sensors and production integrations are not connected.
           </p>
         </div>
 
@@ -386,7 +374,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             <span className="text-xs font-mono text-cyan-400 font-bold">01. INGESTION</span>
             <h3 className="text-sm font-bold text-white">Edge Sensor Bus</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Industrial gateways ingest MQTT, OPC-UA, and Modbus RTU at 1000 Hz. Continuous vibration, temperature, acoustic emissions, and motor current (MCSA).
+              This demo uses simulated UI telemetry. MQTT, OPC-UA, Modbus, and real sensor ingestion are future integration work.
             </p>
           </div>
 
@@ -402,7 +390,7 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             <span className="text-xs font-mono text-cyan-400 font-bold">03. PROGNOSTICS</span>
             <h3 className="text-sm font-bold text-white">Physics-Informed RUL</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Trained on NASA C-MAPSS and UCI AI4I benchmarks. Deep sequence autoencoders forecast Remaining Useful Life (RUL) with 14.2 RMSE accuracy.
+              Embedded sample records are available for exploration. A reproducibly trained and evaluated RUL model is not yet included.
             </p>
           </div>
 
@@ -410,220 +398,83 @@ export const StartupLanding: React.FC<StartupLandingProps> = ({
             <span className="text-xs font-mono text-cyan-400 font-bold">04. CMMS DISPATCH</span>
             <h3 className="text-sm font-bold text-white">Autonomous Work Orders</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              When risk thresholds breach ISO 10816-3 Zone C, Daxoriq auto-generates CMMS tickets with technician step checklists, LOTO precautions, and parts orders.
+              The demo can prepare draft work orders for human review. It does not dispatch external tickets or make safety-critical decisions.
             </p>
           </div>
         </div>
       </section>
 
-      {/* 5. Verified Industry Case Studies */}
-      <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 lg:p-10 space-y-6">
+      {/* 5. Example workflows, not customer case studies */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-6 lg:p-10 space-y-6 shadow-sm">
         <div>
-          <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider block">
-            Proven Field Reliability
-          </span>
-          <h2 className="text-2xl font-bold text-white tracking-tight mt-1">
-            Real Impact Across Aerospace, Machining & Heavy Kilns
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 space-y-3">
-            <span className="text-xs font-mono text-cyan-400 font-bold">Aerospace Propulsion Facility</span>
-            <h3 className="text-sm font-bold text-white leading-snug">
-              44% Drop in CFM56 Turbofan Test Cell Aborts
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              "Daxoriq's gas path analysis caught High-Pressure Compressor thermal erosion 38 hours before sensor redlines, saving over $210,000 in teardown costs."
-            </p>
-            <div className="text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-800">
-              Reliability Lead · Propulsion Test Group
-            </div>
-          </div>
-
-          <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 space-y-3">
-            <span className="text-xs font-mono text-cyan-400 font-bold">Tier-1 Precision CNC Plant</span>
-            <h3 className="text-sm font-bold text-white leading-snug">
-              Zero Spindle Burnouts in 14 Consecutive Months
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              "By cross-referencing cutting torque with tool wear limits from the UCI AI4I models, we stopped spindle taper damage on our DMG Mori 5-axis centers completely."
-            </p>
-            <div className="text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-800">
-              Operations Director · Aero Tooling Systems
-            </div>
-          </div>
-
-          <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 space-y-3">
-            <span className="text-xs font-mono text-cyan-400 font-bold">Rotary Kiln Gallery</span>
-            <h3 className="text-sm font-bold text-white leading-snug">
-              Catastrophic 250kW Induction Blower Seizure Averted
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              "The FFT demodulation flagged an outer race spall at 340 Hz while overall vibration was still within normal range. Prevented a full line shutdown."
-            </p>
-            <div className="text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-800">
-              Chief Mechanical Engineer · Mineral Processing
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Transparent Enterprise Pricing */}
-      <section className="space-y-6">
-        <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider">
-            Clear Enterprise Pricing
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Scale from Test Cell to Multi-Plant Fleet
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
-            All plans include full sensor streaming, RUL prognostics, and CMMS integration.
+          <span className="text-xs font-semibold text-cyan-700 uppercase tracking-wider block">Example scenarios</span>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">How a maintenance team could use Daxoriq</h2>
+          <p className="text-sm text-slate-600 mt-2 max-w-3xl">
+            These are illustrative workflows for exploring the product, not claims of deployed customer results.
           </p>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <article className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+            <span className="text-xs font-semibold text-cyan-700">01 · Detect</span>
+            <h3 className="font-bold text-slate-900">Review a sensor alert</h3>
+            <p className="text-sm text-slate-600">Inspect sample telemetry and identify what additional checks a qualified maintainer should perform.</p>
+          </article>
+          <article className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+            <span className="text-xs font-semibold text-cyan-700">02 · Understand</span>
+            <h3 className="font-bold text-slate-900">Review evidence</h3>
+            <p className="text-sm text-slate-600">Explore public benchmark samples and ask the copilot questions about the data currently shown.</p>
+          </article>
+          <article className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+            <span className="text-xs font-semibold text-cyan-700">03 · Coordinate</span>
+            <h3 className="font-bold text-slate-900">Draft a work order</h3>
+            <p className="text-sm text-slate-600">Turn a reviewed issue into a draft checklist. No external CMMS ticket is dispatched by this demo.</p>
+          </article>
+        </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          
-          {/* Plan 1 */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <span className="text-xs font-mono text-slate-400 font-semibold block">PILOT / TEST CELL</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold text-white font-mono">$2,400</span>
-                <span className="text-xs text-slate-400 font-mono">/ month</span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Ideal for evaluating Daxoriq on up to 5 critical production assets.
-              </p>
-              <ul className="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Up to 5 connected heavy assets</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>1000 Hz vibration FFT spectrum</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>NASA C-MAPSS RUL inference</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Automated work order creation</span>
-                </li>
-              </ul>
-            </div>
-            <button
-              onClick={onEnterConsole}
-              className="w-full py-2.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-            >
-              Start 30-Day Pilot
-            </button>
-          </div>
-
-          {/* Plan 2 - Featured */}
-          <div className="bg-slate-900 border-2 border-cyan-500 rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-xl shadow-cyan-950/40 relative">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-600 text-white text-[10px] font-mono font-bold px-3 py-0.5 rounded-full uppercase">
-              Most Popular in Manufacturing
-            </span>
-            <div className="space-y-4">
-              <span className="text-xs font-mono text-cyan-400 font-bold block">FACTORY FLEET</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold text-white font-mono">$8,500</span>
-                <span className="text-xs text-slate-400 font-mono">/ month</span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Full plant coverage with automated CMMS dispatch and FLIR thermal diagnostics.
-              </p>
-              <ul className="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Up to 40 connected machines</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Radiometric FLIR thermal analysis</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Daxoriq AI Copilot with manual grounding</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>SAP PM & IBM Maximo 2-way sync</span>
-                </li>
-              </ul>
-            </div>
-            <button
-              onClick={onEnterConsole}
-              className="w-full py-2.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors shadow-sm"
-            >
-              Deploy Factory Fleet
-            </button>
-          </div>
-
-          {/* Plan 3 */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <span className="text-xs font-mono text-slate-400 font-semibold block">GLOBAL ENTERPRISE</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold text-white font-mono">Custom</span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Dedicated on-prem edge servers, unlimited tags, custom physics models.
-              </p>
-              <ul className="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Unlimited global facilities & assets</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Air-gapped on-premise edge appliances</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Dedicated reliability engineer SLA</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>Custom ML training on proprietary logs</span>
-                </li>
-              </ul>
-            </div>
-            <button
-              onClick={onOpenCopilot}
-              className="w-full py-2.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-            >
-              Contact Solutions Engineering
-            </button>
-          </div>
-
+      {/* 6. Prototype scope and roadmap */}
+      <section className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="text-xs font-semibold text-cyan-700 uppercase tracking-wider">Prototype scope</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Built to validate the workflow before production integration</h2>
+          <p className="text-sm text-slate-600">The current build is a demonstrator. The items below require additional engineering before a real-factory rollout.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <article className="bg-white border border-slate-200 rounded-2xl p-6 space-y-2">
+            <h3 className="font-bold text-slate-900">Available in this demo</h3>
+            <p className="text-sm text-slate-600">Interactive asset views, simulated telemetry, selected public benchmark sample rows, AI-assisted chat when configured, and local work-order drafts.</p>
+          </article>
+          <article className="bg-white border border-slate-200 rounded-2xl p-6 space-y-2">
+            <h3 className="font-bold text-slate-900">Next integration milestones</h3>
+            <p className="text-sm text-slate-600">Load full source datasets, train and evaluate a reproducible baseline, connect a real ticketing sandbox, and persist work orders in a database.</p>
+          </article>
+          <article className="bg-white border border-slate-200 rounded-2xl p-6 space-y-2">
+            <h3 className="font-bold text-slate-900">Required before a live pilot</h3>
+            <p className="text-sm text-slate-600">Technician validation, site-approved procedures, authentication and audit logs, real sensor ingestion, data permissions, and measured outcomes.</p>
+          </article>
         </div>
       </section>
 
       {/* 7. Bottom CTA Banner */}
-      <section className="bg-gradient-to-r from-slate-900 via-slate-850 to-cyan-950/40 border border-slate-800 rounded-xl p-8 lg:p-12 text-center space-y-4">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Ready to eliminate unplanned downtime in your facility?
+      <section className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8 lg:p-12 text-center space-y-4">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Explore industrial maintenance workflows with clearer evidence.
         </h2>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto">
-          Explore our real NASA C-MAPSS degradation trajectories or launch the interactive live fleet operations console right now.
+        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
+          Explore embedded benchmark samples or open the interactive operations console. The sensor stream is simulated and no live factory is connected.
         </p>
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={onEnterConsole}
             className="px-6 py-3 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors shadow-lg"
           >
-            Launch Live Operations Console
+            Open Operations Console
           </button>
           <button
             onClick={onExploreDatasets}
-            className="px-6 py-3 text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-700 rounded-lg transition-colors"
+            className="px-6 py-3 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-lg transition-colors"
           >
-            View Real Datasets (CSV Download)
+            View benchmark samples (CSV export)
           </button>
         </div>
       </section>

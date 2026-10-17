@@ -129,7 +129,7 @@ export const FleetOverview: React.FC<FleetOverviewProps> = ({
             <span className="text-xs text-emerald-400 font-mono">-42 min lead</span>
           </div>
           <div className="mt-2 text-xs text-slate-400">
-            <span>CMMS automated dispatch active</span>
+            <span>Work-order drafts · demo only</span>
           </div>
         </div>
 
@@ -150,12 +150,12 @@ export const FleetOverview: React.FC<FleetOverviewProps> = ({
 
         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>IoT Telemetry Feed</span>
+            <span>Simulated telemetry feed</span>
             <Cpu className="w-4 h-4 text-cyan-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono tabular-nums text-cyan-400">128</span>
-            <span className="text-xs text-slate-400 font-mono">Sensors Live</span>
+            <span className="text-xs text-slate-400 font-mono">Browser simulation</span>
           </div>
           <div className="mt-2 text-xs text-slate-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
@@ -173,7 +173,7 @@ export const FleetOverview: React.FC<FleetOverviewProps> = ({
               <span>Plant Floor Map & Machinery Bay Layout</span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Click any plant bay to inspect real-time sensor streams, vibration health, and predictive failure forecasts.
+              Select a demo asset to inspect browser-generated sensor values, sample trend lines, and illustrative health indicators.
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
@@ -485,7 +485,7 @@ export const FleetOverview: React.FC<FleetOverviewProps> = ({
                   <div className="space-y-1.5">
                     <div className="text-[11px] text-slate-400 flex items-center justify-between">
                       <span>Primary Telemetry Channels</span>
-                      <span className="font-mono text-[10px] text-slate-500">Live 1s interval</span>
+                      <span className="font-mono text-[10px] text-slate-500">3s simulated update</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                       {asset.sensors.slice(0, 2).map(sensor => {

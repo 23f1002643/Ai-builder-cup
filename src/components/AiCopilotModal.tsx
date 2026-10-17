@@ -35,11 +35,13 @@ export const AiCopilotModal: React.FC<AiCopilotModalProps> = ({
     {
       id: 'init-1',
       role: 'assistant',
-      content: `Hello! I am **Daxoriq AI Copilot**, your certified condition monitoring and industrial reliability assistant.
+      content: `Hi, I'm the Daxoriq maintenance copilot.
 
-I am actively connected to your plant's SCADA sensor streams, OEM service manuals, and CMMS work order registry. 
+I can help explain the sample asset context shown in this prototype and prepare non-executing maintenance drafts for qualified human review.
 
-Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I assist you with diagnostic triage, vibration spectral analysis, or maintenance procedures today?`,
+This demo uses simulated telemetry and embedded sample data. It is not connected to live SCADA, OEM manuals, or a production CMMS. Do not use AI output as a safety-critical instruction.
+
+Selected demo asset: **${currentAsset.name}** (${currentAsset.tag}).`,
       timestamp: 'Just now'
     }
   ]);
@@ -60,10 +62,10 @@ Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I 
   }, [messages]);
 
   const quickPrompts = [
-    `Analyze vibration peaks and ISO 10816-3 compliance for ${activeAsset.tag}`,
-    `Step-by-step bearing replacement guide and induction heating parameters`,
+    `Explain the sample sensor readings for ${activeAsset.tag} and what they cannot tell us`,
+    `Help me prepare a maintenance review checklist without assuming a diagnosis`,
     `How does NASA C-MAPSS model RUL degradation curves?`,
-    `Troubleshoot spindle chatter and cutting tool wear on CNC-04`,
+    `What evidence should a technician collect before raising a work order?`,
   ];
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -100,6 +102,9 @@ Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I 
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || `AI service returned HTTP ${response.status}`);
+      }
       const botMsg: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
@@ -112,7 +117,9 @@ Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I 
       const errorMsg: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: 'Unable to reach the Daxoriq AI engine. Please verify network connectivity or check server logs.',
+        content: err instanceof Error
+          ? `AI copilot unavailable: ${err.message}. Check server configuration and try again. No diagnosis was generated.`
+          : 'AI copilot unavailable. Check server configuration and try again. No diagnosis was generated.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -138,7 +145,7 @@ Currently monitoring: **${currentAsset.name}** (${currentAsset.tag}). How can I 
             <span>AI Diagnostic Copilot & Maintenance Knowledge Base</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Powered by Gemini 3.8 Flash, grounded in OEM machinery manuals, vibration standards, and live SCADA telemetry.
+            Gemini-powered when configured · answers use the supplied demo context only · not connected to OEM manuals or live plant systems.
           </p>
         </div>
 
