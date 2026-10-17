@@ -1,5 +1,7 @@
-// Authentic records from NASA C-MAPSS Turbofan Engine Degradation Simulation (FD001)
-// and UCI Machine Learning Repository: AI4I 2020 Predictive Maintenance Dataset
+// Embedded sample rows shaped from public predictive-maintenance benchmark schemas.
+// This file is a small subset, not a complete official dataset download.
+// Do not use these embedded rows to claim model performance; load and validate the full
+// source data and reproduce the evaluation before reporting any benchmark metrics.
 
 export interface RealCMAPSSRow {
   unit: number;
@@ -40,7 +42,7 @@ export interface RealAI4IRow {
   rnf: number; // Random failure
 }
 
-// 40 Authentic sequential records from NASA C-MAPSS FD001 Engine #1 and Engine #2
+// 40 selected embedded rows with NASA C-MAPSS FD001-style fields; not the complete dataset.
 export const REAL_CMAPSS_DATA: RealCMAPSSRow[] = [
   // Engine Unit 1 - Early Life (Nominal)
   { unit: 1, cycle: 1, setting1: -0.0007, setting2: -0.0004, setting3: 100.0, s2_temp_lpc: 641.82, s3_temp_hpc: 1589.70, s4_temp_lpt: 1400.60, s7_press_hpc: 554.36, s8_fan_speed: 2388.06, s9_core_speed: 9046.19, s11_press_static: 47.47, s12_fuel_flow_ratio: 521.66, s14_corrected_core_speed: 8138.62, s15_bypass_ratio: 8.4195, s20_hpt_coolant: 39.06, s21_lpt_coolant: 23.4190, rul: 191, healthPct: 100 },
@@ -66,7 +68,8 @@ export const REAL_CMAPSS_DATA: RealCMAPSSRow[] = [
   { unit: 2, cycle: 287, setting1: -0.0010, setting2: 0.0002, setting3: 100.0, s2_temp_lpc: 648.40, s3_temp_hpc: 1621.80, s4_temp_lpt: 1445.60, s7_press_hpc: 546.90, s8_fan_speed: 2388.58, s9_core_speed: 9072.40, s11_press_static: 48.68, s12_fuel_flow_ratio: 517.60, s14_corrected_core_speed: 8175.80, s15_bypass_ratio: 8.7350, s20_hpt_coolant: 37.52, s21_lpt_coolant: 22.9500, rul: 0, healthPct: 0 }
 ];
 
-// 25 Authentic records from UCI Machine Learning Repository: AI4I 2020 CNC Machining Dataset
+// 25 selected embedded rows in the UCI AI4I 2020 schema. The source dataset is synthetic,
+// and this array is not a complete dataset download.
 export const REAL_AI4I_DATA: RealAI4IRow[] = [
   // Normal operations
   { udi: 1, productId: 'M14860', type: 'M', airTempK: 298.1, processTempK: 308.6, rotationalSpeedRpm: 1551, torqueNm: 42.8, toolWearMin: 0, machineFailure: 0, twf: 0, hdf: 0, pwf: 0, osf: 0, rnf: 0 },
