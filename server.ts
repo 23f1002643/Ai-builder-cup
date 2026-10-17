@@ -249,22 +249,22 @@ app.post('/api/analyze-thermal', async (req, res) => {
     }
 
     parts.push({
-      text: `Review the supplied image for visible thermal patterns only. Do not claim calibrated/radiometric measurements unless the image visibly contains a readable scale. Do not invent temperature values from ordinary RGB images. Any observations are tentative and must be reviewed by a qualified thermography technician. This is not a safety-critical diagnosis.
-Inspection context: ${inspectionNotes || 'Routine FLIR radiometric thermography scan'}.
+      text: `Review the supplied image for visible patterns only. Do not assume the image is a calibrated thermogram. Do not infer temperatures from color alone. If a readable calibrated scale/metadata is not visible, set maxObservedTempC and deltaT to null and set every hotspot tempC to null. State that temperatures are not measurable from the supplied image. Keep visual observations tentative, for qualified technician review only; this is not a safety-critical diagnosis.
+Inspection context: ${inspectionNotes || 'No calibrated radiometric metadata was provided'}.
 Identify:
-1. Max temperature hot spot and ambient baseline temperature.
+1. State whether a calibrated temperature scale/metadata is visible. Only report temperatures when the image supports it; otherwise return null numeric temperature fields.
 2. Defect classification (e.g. Bearing race friction, misalignment, loose electrical lug, insulation breakdown).
 3. Severity rating (Normal, Advisory, Serious, Critical).
 4. Direct technical assessment and immediate corrective action.
 
 Return JSON format:
 {
-  "maxObservedTempC": number,
-  "deltaT": number,
+  "maxObservedTempC": number | null,
+  "deltaT": number | null,
   "severityRating": "CRITICAL" | "SERIOUS" | "ADVISORY" | "NORMAL",
   "primaryAnomaly": "string",
   "identifiedHotspots": [
-    { "zone": "string", "tempC": number, "status": "string" }
+    { "zone": "string", "tempC": number | null, "status": "string" }
   ],
   "failureRisk": "string",
   "correctiveAction": "string"
