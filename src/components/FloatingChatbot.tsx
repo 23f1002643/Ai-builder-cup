@@ -38,11 +38,13 @@ export const FloatingChatbot: React.FC<FloatingChatbotProps> = ({
     {
       id: 'init-1',
       role: 'assistant',
-      content: `Welcome to **Daxoriq AI Intelligence Copilot**.
+      content: `Hi, I'm the Daxoriq maintenance copilot.
 
-I'm an industrial reliability AI assistant integrated into your plant's telemetry, OEM service manuals, and CMMS.
+I can help you explore the selected demo asset, understand the sample readings shown in this prototype, and draft questions for a qualified maintenance professional.
 
-Currently referencing **${selectedAsset.name}** (${selectedAsset.tag}). Ask me anything about vibration spectra, RUL degradation math, or ISO maintenance protocols.`,
+This sandbox uses embedded benchmark samples and simulated telemetry. It is not connected to a live factory, OEM manuals, or a CMMS. Do not use it for safety-critical decisions.
+
+Selected demo asset: **${selectedAsset.name}** (${selectedAsset.tag}).`,
       timestamp: 'Just now'
     }
   ]);
@@ -100,6 +102,9 @@ Currently referencing **${selectedAsset.name}** (${selectedAsset.tag}). Ask me a
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || `AI service returned HTTP ${response.status}`);
+      }
       const botMessage: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
@@ -109,6 +114,15 @@ Currently referencing **${selectedAsset.name}** (${selectedAsset.tag}). Ask me a
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
       console.error('Chat error:', err);
+      const botMessage: Message = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: err instanceof Error
+          ? `I couldn't reach the AI service: ${err.message}. Check that the server is running and GEMINI_API_KEY is configured, then try again. No diagnosis was generated.`
+          : 'I could not reach the AI service. Check the server configuration and try again. No diagnosis was generated.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, botMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +142,7 @@ Currently referencing **${selectedAsset.name}** (${selectedAsset.tag}). Ask me a
       >
         <Bot className="w-5 h-5 text-cyan-100" />
         <span>Ask Daxoriq AI</span>
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        <span className="text-[10px] font-medium text-cyan-100/80">Demo</span>
       </button>
     );
   }
@@ -149,8 +163,8 @@ Currently referencing **${selectedAsset.name}** (${selectedAsset.tag}). Ask me a
           <div>
             <h3 className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5">
               <span>Daxoriq AI Copilot</span>
-              <span className="text-[10px] font-mono font-normal text-cyan-400 bg-cyan-950 px-1.5 rounded">
-                Gemini 3.8
+              <span className="text-[10px] font-medium text-cyan-300 bg-cyan-950 px-1.5 rounded">
+                AI assistant
               </span>
             </h3>
             <p className="text-[10px] text-slate-400">
@@ -162,15 +176,17 @@ Currently referencing **${selectedAsset.name}** (${selectedAsset.tag}). Ask me a
         <div className="flex items-center gap-1 text-slate-400">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 hover:text-white rounded"
-            title={isExpanded ? 'Minimize' : 'Maximize'}
+            aria-label={isExpanded ? 'Restore chat size' : 'Expand chat'}
+            className="p-2 hover:text-white hover:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            title={isExpanded ? 'Restore chat size' : 'Expand chat'}
           >
             {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
           <button
             onClick={onToggle}
-            className="p-1 hover:text-white rounded"
-            title="Close Chat"
+            aria-label="Close AI copilot"
+            className="p-2 hover:text-white hover:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            title="Close AI copilot"
           >
             <X className="w-4 h-4" />
           </button>
