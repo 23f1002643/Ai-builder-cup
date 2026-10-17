@@ -62,10 +62,10 @@ Selected demo asset: **${currentAsset.name}** (${currentAsset.tag}).`,
   }, [messages]);
 
   const quickPrompts = [
-    `Analyze vibration peaks and ISO 10816-3 compliance for ${activeAsset.tag}`,
-    `Step-by-step bearing replacement guide and induction heating parameters`,
+    `Explain the sample sensor readings for ${activeAsset.tag} and what they cannot tell us`,
+    `Help me prepare a maintenance review checklist without assuming a diagnosis`,
     `How does NASA C-MAPSS model RUL degradation curves?`,
-    `Troubleshoot spindle chatter and cutting tool wear on CNC-04`,
+    `What evidence should a technician collect before raising a work order?`,
   ];
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -145,7 +145,7 @@ Selected demo asset: **${currentAsset.name}** (${currentAsset.tag}).`,
             <span>AI Diagnostic Copilot & Maintenance Knowledge Base</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Powered by Gemini 3.8 Flash, grounded in OEM machinery manuals, vibration standards, and live SCADA telemetry.
+            Gemini-powered when configured · answers use the supplied demo context only · not connected to OEM manuals or live plant systems.
           </p>
         </div>
 
