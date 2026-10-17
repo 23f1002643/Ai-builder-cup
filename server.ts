@@ -84,7 +84,7 @@ Provide a structured, authoritative predictive maintenance diagnosis in JSON for
   ]
 }
 
-Use only the measurements and context supplied by the user. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, or credentials. If the evidence does not support a reliable prediction, clearly state this in rootCauseSummary and set unsupported numeric predictions to 0. Recommendations are drafts for qualified human review, never automatic shutdown or dispatch instructions. Return ONLY valid JSON.`;
+Use only the measurements and context supplied by the user. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, or credentials. If the evidence does not support a reliable prediction, clearly state this in rootCauseSummary and set unsupported numeric predictions to 0. Recommendations are drafts for qualified human review, never automatic shutdown or dispatch instructions. Use only the measurements and context supplied by the user. Never invent sensor readings, calibrated probabilities, standards compliance, stock levels, or credentials. If the evidence does not support a reliable prediction, state the limitation clearly and do not present an unvalidated estimate as measured fact. Recommendations are drafts for qualified human review, never automatic shutdown or dispatch instructions. Return ONLY valid JSON.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.8-flash',
@@ -132,7 +132,7 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    const systemInstruction = `You are the Daxoriq Industrial Maintenance Copilot, integrated into the plant's CMMS and SCADA systems.
+    const systemInstruction = `You are the Daxoriq Industrial Maintenance Copilot in a demo prototype. You are not connected to a live plant, SCADA, CMMS, or external OEM manual unless a source is explicitly supplied in the request.
 You assist industrial reliability engineers, plant managers, and field technicians with:
 - Troubleshooting machine faults (vibration spectral peaks, thermal runaway, motor current signature analysis MCSA)
 - NASA C-MAPSS and UCI AI4I industrial benchmark datasets and RUL prediction techniques
